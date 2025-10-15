@@ -1,0 +1,2 @@
+username,full_name,role,password_hash,salt
+admin,Administrator,admin,807f3b074038c8de28c25b30b78180221fbfaebeca5d9d6a98df0c1d345ff3bb,90d834d4f4080c21

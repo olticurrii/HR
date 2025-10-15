@@ -1,0 +1,14 @@
+employee,role,task,done,due_date,assignee,notes
+erion,General,Hajcde hama karin,False,2025-09-30,Bashk me olt currin,duhet me lag mir
+erion,General,Signed offer & personal details form,False,,,
+erion,General,ID/passport copy + tax number,False,,,
+erion,General,Employee handbook shared,False,,,
+erion,General,"Create email & tool accounts (Google, Slack, etc.)",False,,,
+erion,General,Add to payroll,False,,,
+erion,General,First-week 1:1 with manager,False,,,
+Olt Curri ,Developer,Laptop + accessories issued,False,,,
+Olt Curri ,Developer,GitHub access + repo permissions,False,,,
+Olt Curri ,Developer,Set up local dev environment,False,,,
+Olt Curri ,Developer,Access to project management (Jira/Trello),False,,,
+Olt Curri ,Developer,Security/Secrets onboarding,False,,,
+Olt Curri ,Developer,Intro to code review process,False,,,

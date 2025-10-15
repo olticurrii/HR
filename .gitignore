@@ -1,0 +1,43 @@
+# Virtual environments
+venv/
+.venv/
+venv_mac/
+venv_backup_*/
+env/
+ENV/
+.env
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Log files
+*.log
+
+# Node modules
+node_modules/
+
+# Build files
+build/
+dist/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
