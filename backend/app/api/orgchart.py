@@ -55,12 +55,19 @@ def build_org_tree(users: List[User], root_id: Optional[int] = None) -> List[Org
 
 @router.get("/orgchart", response_model=dict)
 async def get_org_chart(
+    department_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get organization chart with hierarchical structure and unassigned employees"""
     # Load all users with their departments
-    users = db.query(User).options(joinedload(User.department)).all()
+    query = db.query(User).options(joinedload(User.department))
+    
+    # Filter by department if specified
+    if department_id:
+        query = query.filter(User.department_id == department_id)
+    
+    users = query.all()
     
     if not users:
         return {"assigned": [], "unassigned": []}
@@ -74,6 +81,10 @@ async def get_org_chart(
             assigned_users.append(user)
         else:
             unassigned_users.append(user)
+    
+    # If no users have managers, put all users in unassigned so they still show up
+    if not assigned_users and users:
+        unassigned_users = users
     
     # Build tree for assigned users
     assigned_tree = build_org_tree(assigned_users)

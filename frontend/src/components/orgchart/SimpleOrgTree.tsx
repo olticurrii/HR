@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Tree } from 'react-d3-tree';
-import { User, Building2, Users } from 'lucide-react';
+import { User, Building2, Users, ChevronDown, ChevronRight } from 'lucide-react';
 import { OrgChartNode } from '../../services/orgchartService';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -9,6 +9,8 @@ interface SimpleOrgTreeProps {
   data: OrgChartNode[];
   onReassign: (userId: number, newManagerId?: number | null, newDepartmentId?: number | null) => Promise<void>;
   onDepartmentDrop?: (userId: number, departmentId: number) => Promise<void>;
+  onUserClick?: (user: OrgChartNode) => void;
+  zoomLevel?: number;
 }
 
 interface CustomNodeProps {
@@ -39,33 +41,42 @@ const CustomNode: React.FC<CustomNodeProps> = ({
   canDrag
 }) => {
   const isDragOver = dragOverNodeId === nodeDatum.id;
+  const [isExpanded, setIsExpanded] = useState(true);
+  const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
+  const teamSize = nodeDatum.children ? nodeDatum.children.length : 0;
 
-  const getAvatar = (name: string, avatarUrl?: string) => {
-    if (avatarUrl) {
-      return <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full" />;
-    }
-    const initial = name.charAt(0).toUpperCase();
-    return (
-      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-        {initial}
-      </div>
-    );
+    const getAvatar = (name: string, avatarUrl?: string) => {
+      if (avatarUrl) {
+        return <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />;
+      }
+      const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      return (
+        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+          {initials}
+        </div>
+      );
+    };
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+    toggleNode();
   };
 
   return (
     <g>
-      <foreignObject width="200" height="120" x="-100" y="-60">
+      <foreignObject width="160" height="80" x="-80" y="-40">
         <div
           className={`
-            w-48 h-24 bg-white rounded-lg shadow-md border-2 border-gray-200 p-3 cursor-pointer
-            transition-all duration-200
+            relative w-[160px] h-[80px] rounded-lg border border-gray-200 shadow-sm bg-white cursor-pointer
+            transition-all duration-200 hover:shadow-md
             ${isDragOver ? 'border-blue-400 ring-2 ring-blue-300' : ''}
             ${isDragging ? 'opacity-60 scale-95' : ''}
-            ${canDrag ? 'cursor-move hover:shadow-lg' : 'cursor-default'}
+            ${canDrag ? 'cursor-move' : 'cursor-default'}
           `}
           draggable={canDrag}
           onDragStart={(e) => {
-            e.stopPropagation(); // Prevent tree drag
+            e.stopPropagation();
             onDragStart(e, nodeDatum);
           }}
           onDragEnd={(e) => {
@@ -74,7 +85,7 @@ const CustomNode: React.FC<CustomNodeProps> = ({
           }}
           onDragOver={(e) => {
             e.preventDefault();
-            e.stopPropagation(); // Prevent tree drag
+            e.stopPropagation();
             onDragOver(e, nodeDatum);
           }}
           onDragLeave={(e) => {
@@ -83,34 +94,52 @@ const CustomNode: React.FC<CustomNodeProps> = ({
           }}
           onDrop={(e) => {
             e.preventDefault();
-            e.stopPropagation(); // Prevent tree drag
+            e.stopPropagation();
             onDrop(e, nodeDatum);
           }}
           onClick={() => onNodeClick(nodeDatum)}
         >
-          <div className="flex items-center space-x-2 h-full">
-            <div className="flex-shrink-0">
+          {/* Chevron expand/collapse button */}
+          {hasChildren && (
+            <button
+              onClick={handleToggle}
+              className="absolute top-2 left-2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+          )}
+          
+          {/* Presence dot */}
+          <div className="absolute top-2 right-2 w-2 h-2 bg-green-400 rounded-full border border-white"></div>
+          
+          {/* Team size badge */}
+          {teamSize > 0 && (
+            <div className="absolute bottom-2 left-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full flex items-center">
+              <Users className="w-3 h-3 mr-1" />
+              {teamSize}
+            </div>
+          )}
+          
+          {/* Main content */}
+          <div className="flex flex-col items-center justify-center h-full p-2">
+            <div className="mb-1">
               {getAvatar(nodeDatum.name, nodeDatum.avatar_url)}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">
-                {nodeDatum.name}
-              </div>
-              <div className="text-xs text-gray-500 truncate">
-                {nodeDatum.title}
-              </div>
-              {nodeDatum.department && (
-                <div className="flex items-center text-xs text-gray-400 mt-1">
-                  <Building2 className="w-3 h-3 mr-1" />
-                  <span className="truncate">{nodeDatum.department}</span>
-                </div>
-              )}
+            <div className="text-xs font-semibold text-gray-900 mb-1 truncate w-full text-center">
+              {nodeDatum.name}
+            </div>
+            <div className="text-xs text-gray-500 truncate w-full text-center">
+              {nodeDatum.title}
             </div>
           </div>
           
           {/* Drop target indicator */}
           {isDragOver && (
-            <div className="absolute inset-0 bg-blue-50 bg-opacity-50 rounded-lg flex items-center justify-center">
+            <div className="absolute inset-0 bg-blue-50 bg-opacity-50 rounded-xl flex items-center justify-center">
               <div className="text-xs text-blue-600 font-medium bg-white px-2 py-1 rounded shadow">
                 Make manager
               </div>
@@ -122,7 +151,7 @@ const CustomNode: React.FC<CustomNodeProps> = ({
   );
 };
 
-const SimpleOrgTree: React.FC<SimpleOrgTreeProps> = ({ data, onReassign, onDepartmentDrop }) => {
+const SimpleOrgTree: React.FC<SimpleOrgTreeProps> = ({ data, onReassign, onDepartmentDrop, onUserClick, zoomLevel = 1 }) => {
   const { user } = useAuth();
   const treeContainerRef = useRef<HTMLDivElement>(null);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
@@ -142,8 +171,10 @@ const SimpleOrgTree: React.FC<SimpleOrgTreeProps> = ({ data, onReassign, onDepar
   }, []);
 
   const handleNodeClick = useCallback((nodeDatum: OrgChartNode) => {
-    console.log('Node clicked:', nodeDatum);
-  }, []);
+    if (onUserClick) {
+      onUserClick(nodeDatum);
+    }
+  }, [onUserClick]);
 
   const handleDragStart = useCallback((e: React.DragEvent, node: OrgChartNode) => {
     console.log('Drag start:', { node, canDrag });
@@ -256,16 +287,16 @@ const SimpleOrgTree: React.FC<SimpleOrgTreeProps> = ({ data, onReassign, onDepar
             orientation="vertical"
             pathFunc="step"
             translate={translate}
-            scaleExtent={{ min: 0.3, max: 2 }}
-            nodeSize={{ x: 250, y: 150 }}
+            scaleExtent={{ min: 0.3, max: 3 }}
+            nodeSize={{ x: 180, y: 100 }}
             separation={{ siblings: 1.5, nonSiblings: 2 }}
             renderCustomNodeElement={renderCustomNodeElement}
             enableLegacyTransitions={false}
-            transitionDuration={0}
-            zoom={1}
+            transitionDuration={200}
+            zoom={zoomLevel}
             zoomable={true}
-            draggable={true} // Enable tree dragging for pan
-            onUpdate={(updateData) => setTranslate(updateData.translate)} // Handle pan updates
+            draggable={true}
+            onUpdate={(updateData) => setTranslate(updateData.translate)}
           />
         )}
       </div>

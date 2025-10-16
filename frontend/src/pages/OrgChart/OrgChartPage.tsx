@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Building2, Users, AlertCircle } from 'lucide-react';
+import { Network, Users, AlertCircle, ChevronDown, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgChartResponse } from '../../services/orgchartService';
 import { Department } from '../../services/departmentService';
 import orgchartService from '../../services/orgchartService';
 import departmentService from '../../services/departmentService';
 import SimpleOrgTree from '../../components/orgchart/SimpleOrgTree';
-import DepartmentList from '../../components/orgchart/DepartmentList';
+import UserProfileModal from '../../components/orgchart/UserProfileModal';
 import toast from 'react-hot-toast';
 
 const OrgChartPage: React.FC = () => {
@@ -15,17 +15,29 @@ const OrgChartPage: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
 
   useEffect(() => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (selectedDepartment) {
+      loadData();
+    }
+  }, [selectedDepartment]);
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
+      const departmentId = selectedDepartment === 'all' ? undefined : parseInt(selectedDepartment);
+      
       const [orgChartData, departmentsData] = await Promise.all([
-        orgchartService.getOrgChart(),
+        orgchartService.getOrgChart(departmentId),
         departmentService.getAllDepartments()
       ]);
       setOrgData(orgChartData);
@@ -73,6 +85,41 @@ const OrgChartPage: React.FC = () => {
       toast.error(errorMessage);
       throw error; // Re-throw to let the component handle optimistic updates
     }
+  };
+
+  const handleUserClick = (user: any) => {
+    setSelectedUser(user);
+    setIsProfileModalOpen(true);
+  };
+
+  const getAllUsers = (): any[] => {
+    const allUsers: any[] = [];
+    
+    const collectUsers = (users: any[]) => {
+      users.forEach(user => {
+        allUsers.push(user);
+        if (user.children && user.children.length > 0) {
+          collectUsers(user.children);
+        }
+      });
+    };
+    
+    collectUsers(orgData.assigned);
+    collectUsers(orgData.unassigned);
+    
+    return allUsers;
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.2, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.2, 0.3));
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(1);
   };
 
   // Permission checks
@@ -163,36 +210,88 @@ const OrgChartPage: React.FC = () => {
             }
           </p>
         </div>
-        <button
-          onClick={loadData}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-        >
-          Refresh
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Organization Tree */}
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                Organization Structure
-              </h2>
-            </div>
-            <div className="p-4 h-96">
-              <SimpleOrgTree
-                data={orgData.assigned}
-                onReassign={handleReassign}
-                onDepartmentDrop={handleDepartmentDrop}
-              />
-            </div>
+        <div className="flex items-center space-x-4">
+          {/* Department Filter Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id.toString()}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
           
-          {/* Unassigned Employees Section */}
-          {orgData.unassigned.length > 0 && (
-            <div className="bg-white rounded-lg shadow mt-4">
+          {/* Zoom Controls */}
+          <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={handleZoomOut}
+              className="p-2 hover:bg-gray-200 rounded transition-colors"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <span className="text-sm font-medium min-w-[3rem] text-center">
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <button
+              onClick={handleZoomIn}
+              className="p-2 hover:bg-gray-200 rounded transition-colors"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleResetZoom}
+              className="p-2 hover:bg-gray-200 rounded transition-colors"
+              title="Reset Zoom"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <button
+            onClick={loadData}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Organization Tree - Full Width */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <Users className="w-5 h-5 mr-2" />
+            Organization Structure
+            {selectedDepartment !== 'all' && (
+              <span className="ml-2 text-sm text-gray-500">
+                - {departments.find(d => d.id.toString() === selectedDepartment)?.name}
+              </span>
+            )}
+          </h2>
+        </div>
+        <div className="p-4 h-[600px]">
+          <SimpleOrgTree
+            data={orgData.assigned}
+            onReassign={handleReassign}
+            onDepartmentDrop={handleDepartmentDrop}
+            onUserClick={handleUserClick}
+            zoomLevel={zoomLevel}
+          />
+        </div>
+      </div>
+          
+      {/* Unassigned Employees Section */}
+      {orgData.unassigned.length > 0 && (
+        <div className="bg-white rounded-lg shadow">
               <div className="p-4 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                   <AlertCircle className="w-5 h-5 mr-2 text-yellow-500" />
@@ -245,28 +344,7 @@ const OrgChartPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Department List */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Building2 className="w-5 h-5 mr-2" />
-                Departments
-              </h2>
-            </div>
-            <div className="p-4">
-              <DepartmentList
-                departments={departments}
-                onDepartmentDrop={handleDepartmentDrop}
-                canDrop={canDrag}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Instructions for admins */}
       {canDrag && (
@@ -277,9 +355,20 @@ const OrgChartPage: React.FC = () => {
             <li>• Drag an employee card onto a department to move them to that department</li>
             <li>• The entire subtree (direct reports) will move with the employee</li>
             <li>• Invalid moves (cycles, permissions) will be blocked with error messages</li>
+            <li>• Click on any employee card to open their profile and make changes</li>
           </ul>
         </div>
       )}
+
+      {/* Profile Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={selectedUser}
+        departments={departments}
+        onReassign={handleReassign}
+        allUsers={getAllUsers()}
+      />
     </div>
   );
 };

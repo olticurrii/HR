@@ -28,8 +28,9 @@ export interface OrgChartResponse {
 }
 
 export const orgchartService = {
-  async getOrgChart(): Promise<OrgChartResponse> {
-    const response = await api.get('/api/v1/orgchart');
+  async getOrgChart(departmentId?: number): Promise<OrgChartResponse> {
+    const params = departmentId ? { department_id: departmentId } : {};
+    const response = await api.get('/api/v1/orgchart', { params });
     return response.data;
   },
 
