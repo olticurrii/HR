@@ -61,13 +61,34 @@ async def get_org_chart(
 ):
     """Get organization chart with hierarchical structure and unassigned employees"""
     # Load all users with their departments
-    query = db.query(User).options(joinedload(User.department))
+    all_users = db.query(User).options(joinedload(User.department)).all()
     
-    # Filter by department if specified
+    if not all_users:
+        return {"assigned": [], "unassigned": []}
+    
+    # If department filter is specified, find users in that department
+    # but also include their entire manager chain
     if department_id:
-        query = query.filter(User.department_id == department_id)
-    
-    users = query.all()
+        dept_users = [u for u in all_users if u.department_id == department_id]
+        
+        # For each user in the department, walk up the manager chain
+        users_to_include = set()
+        for user in dept_users:
+            users_to_include.add(user.id)
+            # Walk up manager chain
+            current = user
+            while hasattr(current, 'manager_id') and current.manager_id:
+                manager = next((u for u in all_users if u.id == current.manager_id), None)
+                if manager:
+                    users_to_include.add(manager.id)
+                    current = manager
+                else:
+                    break
+        
+        # Filter to only users we need
+        users = [u for u in all_users if u.id in users_to_include]
+    else:
+        users = all_users
     
     if not users:
         return {"assigned": [], "unassigned": []}

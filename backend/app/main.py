@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine
 from app.core.config import settings
 from app.models import Base
-from app.api import auth, users, departments, tasks, projects, project_tasks, chat, comments, orgchart
+from app.api import auth, users, departments, tasks, projects, project_tasks, chat, comments, orgchart, employee_profile
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -33,6 +33,7 @@ app.include_router(project_tasks.router, prefix="/api/v1/projects", tags=["Proje
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 app.include_router(comments.router, prefix="/api/v1", tags=["Comments"])
 app.include_router(orgchart.router, prefix="/api/v1", tags=["Org Chart"])
+app.include_router(employee_profile.router, tags=["Employee Profile"])
 
 @app.get("/")
 async def root():

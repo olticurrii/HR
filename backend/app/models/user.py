@@ -32,3 +32,9 @@ class User(Base):
     chat_rooms = relationship("ChatRoom", secondary="chat_participants", back_populates="participants")
     roles = relationship("Role", secondary="user_roles", back_populates="users")
     comments = relationship("Comment", back_populates="user")
+    
+    # Performance relationships
+    performance_objectives = relationship("PerformanceObjective", back_populates="user")
+    review_responses_received = relationship("ReviewResponse", foreign_keys="ReviewResponse.reviewee_id", back_populates="reviewee")
+    review_responses_given = relationship("ReviewResponse", foreign_keys="ReviewResponse.reviewer_id", back_populates="reviewer")
+    competency_scores = relationship("CompetencyScore", back_populates="user")

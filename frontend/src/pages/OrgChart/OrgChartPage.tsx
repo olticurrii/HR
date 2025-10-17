@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Network, Users, AlertCircle, ChevronDown, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgChartResponse } from '../../services/orgchartService';
 import { Department } from '../../services/departmentService';
@@ -11,6 +12,7 @@ import toast from 'react-hot-toast';
 
 const OrgChartPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orgData, setOrgData] = useState<OrgChartResponse>({ assigned: [], unassigned: [] });
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,10 +20,10 @@ const OrgChartPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
   
   // Persistent view state (survives data refresh)
-  const [persistentZoom, setPersistentZoom] = useState<number>(0.8);
+  // Start with a reasonable zoom to see the org chart
+  const [persistentZoom, setPersistentZoom] = useState<number>(0.6);
   const [persistentPan, setPersistentPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -134,8 +136,8 @@ const OrgChartPage: React.FC = () => {
   };
 
   const handleUserClick = (user: any) => {
-    setSelectedUser(user);
-    setIsProfileModalOpen(true);
+    // Navigate to employee profile page
+    navigate(`/people/${user.id}`);
   };
 
   const getAllUsers = (): any[] => {
@@ -157,15 +159,15 @@ const OrgChartPage: React.FC = () => {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.2, 3));
+    setPersistentZoom(prev => Math.min(prev + 0.1, 2));
   };
 
   const handleZoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 0.2, 0.3));
+    setPersistentZoom(prev => Math.max(prev - 0.1, 0.2));
   };
 
   const handleResetZoom = () => {
-    setZoomLevel(1);
+    setPersistentZoom(0.6);
   };
 
   // Permission checks
@@ -285,7 +287,7 @@ const OrgChartPage: React.FC = () => {
               <ZoomOut className="w-4 h-4" />
             </button>
             <span className="text-sm font-medium min-w-[3rem] text-center">
-              {Math.round(zoomLevel * 100)}%
+              {Math.round(persistentZoom * 100)}%
             </span>
             <button
               onClick={handleZoomIn}

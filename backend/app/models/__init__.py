@@ -6,6 +6,15 @@ from app.models.project import Project
 from app.models.chat import ChatRoom, Message
 from app.models.role import Role, Permission
 from app.models.comment import Comment
+from app.models.performance import (
+    PerformanceObjective,
+    PerformanceKeyResult,
+    ReviewCycle,
+    ReviewQuestion,
+    ReviewResponse,
+    Competency,
+    CompetencyScore
+)
 
 __all__ = [
     "Base",
@@ -17,5 +26,12 @@ __all__ = [
     "Message",
     "Role",
     "Permission",
-    "Comment"
+    "Comment",
+    "PerformanceObjective",
+    "PerformanceKeyResult",
+    "ReviewCycle",
+    "ReviewQuestion",
+    "ReviewResponse",
+    "Competency",
+    "CompetencyScore"
 ]

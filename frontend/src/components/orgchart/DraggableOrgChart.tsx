@@ -13,6 +13,7 @@ import {
 import { User, Users, ChevronDown, ChevronRight, GripVertical, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { OrgChartNode } from '../../services/orgchartService';
 import toast from 'react-hot-toast';
+import { OrgEdges, useOrgEdgesUpdater } from './OrgEdges';
 
 interface DraggableOrgChartProps {
   data: OrgChartNode[];
@@ -141,6 +142,8 @@ interface DraggableEmployeeProps {
   expandedIds: Set<string>;
   onToggleExpand: (id: string) => void;
   activeNodeId?: string | null;
+  setCardRef?: (el: HTMLElement | null) => void;
+  createNodeRefCallback?: (id: string) => (el: HTMLElement | null) => void;
 }
 
 const UnassignedEmployeeCard: React.FC<{ employee: OrgChartNode }> = ({ employee }) => {
@@ -242,6 +245,8 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({
   expandedIds,
   onToggleExpand,
   activeNodeId,
+  setCardRef,
+  createNodeRefCallback,
 }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: node.id,
@@ -269,6 +274,10 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({
         ref={(el) => {
           setNodeRef(el);
           setDropRef(el);
+          // Also register this element for OrgEdges position tracking
+          if (setCardRef) {
+            setCardRef(el);
+          }
         }}
         {...attributes}
         {...listeners}
@@ -293,34 +302,20 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({
             if (visibleChildren.length === 0) return null;
             
             return (
-              <>
-                {/* Vertical line from parent */}
-                <div className="absolute left-1/2 top-0 w-0.5 h-8 bg-blue-400 -translate-x-1/2 -translate-y-8"></div>
-
-                {/* Horizontal line connecting children */}
-                {visibleChildren.length > 1 && (
-                  <div className="absolute left-0 right-0 h-0.5 bg-blue-400" style={{ top: '0px' }}></div>
-                )}
-
-                <div className="flex justify-center gap-8">
-                  {visibleChildren.map((child) => (
-                    <div key={child.id} className="relative">
-                      {/* Vertical line to child */}
-                      <div className="absolute left-1/2 top-0 w-0.5 h-8 bg-blue-400 -translate-x-1/2"></div>
-
-                      <div className="pt-8">
-                        <DraggableEmployee
-                          node={child}
-                          onUserClick={onUserClick}
-                          expandedIds={expandedIds}
-                          onToggleExpand={onToggleExpand}
-                          activeNodeId={activeNodeId}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
+              <div className="flex justify-center gap-4 mt-6">
+                {visibleChildren.map((child) => (
+                  <DraggableEmployee
+                    key={child.id}
+                    node={child}
+                    onUserClick={onUserClick}
+                    expandedIds={expandedIds}
+                    onToggleExpand={onToggleExpand}
+                    activeNodeId={activeNodeId}
+                    setCardRef={createNodeRefCallback ? createNodeRefCallback(child.id) : undefined}
+                    createNodeRefCallback={createNodeRefCallback}
+                  />
+                ))}
+              </div>
             );
           })()}
         </div>
@@ -347,6 +342,52 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
   const [pan, setPan] = useState(initialPan); // Use initial pan from parent
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  
+  // Ref map for OrgEdges to track node positions
+  const nodeRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const { updateTrigger, triggerUpdate } = useOrgEdgesUpdater();
+  
+  const setNodeRef = useCallback((id: string) => (el: HTMLElement | null) => {
+    if (!el) {
+      nodeRefs.current.delete(id);
+    } else {
+      nodeRefs.current.set(id, el);
+    }
+  }, []);
+  
+  const getNodeRef = useCallback((id: string) => {
+    return nodeRefs.current.get(id) ?? null;
+  }, []);
+  
+  // Create a ref callback factory for child nodes
+  const createNodeRefCallback = useCallback((id: string) => {
+    return (el: HTMLElement | null) => {
+      if (el) {
+        nodeRefs.current.set(id, el);
+      } else {
+        nodeRefs.current.delete(id);
+      }
+    };
+  }, []);
+  
+  // Flatten tree structure into list of employees with managerId
+  const flattenEmployees = useCallback((nodes: OrgChartNode[], parentId: string | null = null): any[] => {
+    let result: any[] = [];
+    nodes.forEach((node) => {
+      result.push({
+        id: node.id,
+        name: node.name,
+        title: node.title,
+        managerId: parentId,
+      });
+      if (node.children && node.children.length > 0) {
+        result = result.concat(flattenEmployees(node.children, node.id));
+      }
+    });
+    return result;
+  }, []);
+  
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
     // Auto-expand ALL levels so user can see everyone
     const expanded = new Set<string>();
@@ -377,25 +418,57 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
     setExpandedIds(newExpanded);
   }, [data]); // Re-run when data changes (after refresh)
 
+  // Apply initial zoom from parent on first load
+  useEffect(() => {
+    if (isFirstLoad && data.length > 0) {
+      setZoom(initialZoom);
+      onZoomChange?.(initialZoom);
+      setIsFirstLoad(false);
+    }
+  }, [isFirstLoad, initialZoom, data.length, onZoomChange]);
+
+  // Update zoom when parent changes it (for external zoom controls)
+  useEffect(() => {
+    setZoom(initialZoom);
+  }, [initialZoom]);
+
   // Handle mouse wheel zoom (direct scroll/touchpad - NO Ctrl needed)
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    const content = contentRef.current;
+    if (!container || !content) return;
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      // Direct zoom with scroll/touchpad (no Ctrl needed)
+      
+      // Get mouse position relative to container
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // Calculate point in content space before zoom
+      const contentX = (mouseX - pan.x) / zoom;
+      const contentY = (mouseY - pan.y) / zoom;
+      
+      // Calculate new zoom
       const delta = e.deltaY * -0.001;
-      setZoom((prev) => {
-        const newZoom = Math.min(Math.max(0.3, prev + delta), 2);
-        onZoomChange?.(newZoom); // Notify parent
-        return newZoom;
-      });
+      const newZoom = Math.min(Math.max(0.2, zoom + delta), 2);
+      
+      // Calculate new pan to keep mouse point stable
+      const newPan = {
+        x: mouseX - contentX * newZoom,
+        y: mouseY - contentY * newZoom
+      };
+      
+      setZoom(newZoom);
+      setPan(newPan);
+      onZoomChange?.(newZoom);
+      onPanChange?.(newPan);
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
-  }, [onZoomChange]);
+  }, [zoom, pan, onZoomChange, onPanChange]);
 
   // Pan handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -434,25 +507,53 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
     setIsPanning(false);
   }, []);
 
-  // Zoom controls
+  // Zoom controls - zoom toward center
   const handleZoomIn = useCallback(() => {
-    setZoom((prev) => {
-      const newZoom = Math.min(prev + 0.1, 2);
-      onZoomChange?.(newZoom);
-      return newZoom;
-    });
-  }, [onZoomChange]);
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const contentX = (centerX - pan.x) / zoom;
+    const contentY = (centerY - pan.y) / zoom;
+    
+    const newZoom = Math.min(zoom + 0.1, 2);
+    
+    const newPan = {
+      x: centerX - contentX * newZoom,
+      y: centerY - contentY * newZoom
+    };
+    
+    setZoom(newZoom);
+    setPan(newPan);
+    onZoomChange?.(newZoom);
+    onPanChange?.(newPan);
+  }, [zoom, pan, onZoomChange, onPanChange]);
 
   const handleZoomOut = useCallback(() => {
-    setZoom((prev) => {
-      const newZoom = Math.max(prev - 0.1, 0.3);
-      onZoomChange?.(newZoom);
-      return newZoom;
-    });
-  }, [onZoomChange]);
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const contentX = (centerX - pan.x) / zoom;
+    const contentY = (centerY - pan.y) / zoom;
+    
+    const newZoom = Math.max(zoom - 0.1, 0.2);
+    
+    const newPan = {
+      x: centerX - contentX * newZoom,
+      y: centerY - contentY * newZoom
+    };
+    
+    setZoom(newZoom);
+    setPan(newPan);
+    onZoomChange?.(newZoom);
+    onPanChange?.(newPan);
+  }, [zoom, pan, onZoomChange, onPanChange]);
 
   const handleResetView = useCallback(() => {
-    const resetZoom = 0.8;
+    const resetZoom = 0.6; // Match initial zoom to see everyone
     const resetPan = { x: 0, y: 0 };
     setZoom(resetZoom);
     setPan(resetPan);
@@ -562,13 +663,15 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
 
       try {
         await onReassign(parseInt(sourceNode.id), parseInt(targetNode.id));
+        // Trigger edge update after reassignment settles
+        triggerUpdate();
         // Toast handled by parent component
       } catch (error: any) {
         console.error('❌ Reassign failed:', error);
         // Error toast handled by parent component
       }
     },
-    [onReassign]
+    [onReassign, triggerUpdate]
   );
 
   if (!data || data.length === 0) {
@@ -634,14 +737,17 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
         >
           <div
             ref={contentRef}
-            className="w-full h-full flex items-center justify-center p-8"
+            className="w-full h-full"
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-              transformOrigin: 'center',
-              transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+              transformOrigin: 'center center',
+              transition: isPanning ? 'none' : 'transform 0.15s ease-out',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <div className="inline-block">
+            <div className="inline-block min-w-max relative">
               {data.map((rootNode) => (
                 <DraggableEmployee
                   key={rootNode.id}
@@ -650,9 +756,20 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
                   expandedIds={expandedIds}
                   onToggleExpand={handleToggleExpand}
                   activeNodeId={activeNode?.id || null}
+                  setCardRef={createNodeRefCallback(rootNode.id)}
+                  createNodeRefCallback={createNodeRefCallback}
                 />
               ))}
             </div>
+            
+            {/* Render OrgEdges overlay for smooth connector lines - outside inline-block */}
+            <OrgEdges
+              employees={flattenEmployees(data)}
+              getNodeRef={getNodeRef}
+              containerRef={contentRef}
+              scale={zoom}
+              key={updateTrigger}
+            />
           </div>
         </div>
       </div>
