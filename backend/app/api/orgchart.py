@@ -73,20 +73,30 @@ async def get_org_chart(
         return {"assigned": [], "unassigned": []}
     
     # Separate assigned and unassigned employees
+    # Users with manager_id = None are root users (CEO/top level) and should be in the tree
+    # Only users with no department AND no manager are truly unassigned
     assigned_users = []
     unassigned_users = []
     
+    # First, find users who are part of the hierarchy (have manager or have direct reports)
+    user_ids_with_reports = set()
     for user in users:
         if hasattr(user, 'manager_id') and user.manager_id is not None:
+            user_ids_with_reports.add(user.manager_id)
+    
+    for user in users:
+        has_manager = hasattr(user, 'manager_id') and user.manager_id is not None
+        has_reports = user.id in user_ids_with_reports
+        is_root = (not has_manager) and has_reports
+        
+        # User is assigned if they have a manager OR they are a root with reports (CEO)
+        if has_manager or is_root:
             assigned_users.append(user)
         else:
+            # Truly unassigned: no manager and no one reports to them
             unassigned_users.append(user)
     
-    # If no users have managers, put all users in unassigned so they still show up
-    if not assigned_users and users:
-        unassigned_users = users
-    
-    # Build tree for assigned users
+    # Build tree for assigned users (includes root users like CEO)
     assigned_tree = build_org_tree(assigned_users)
     
     # Convert unassigned users to OrgChartNode format
@@ -147,19 +157,30 @@ async def reassign_user(
             )
         
         # Check if new manager is a descendant (would create cycle)
-        def is_descendant(ancestor_id: int, descendant_id: int) -> bool:
+        def is_descendant(ancestor_id: int, descendant_id: int, visited=None) -> bool:
+            if visited is None:
+                visited = set()
+            if descendant_id in visited:
+                return False  # Already checked, avoid infinite loop
             if ancestor_id == descendant_id:
                 return True
+            visited.add(descendant_id)
             descendant = db.query(User).filter(User.id == descendant_id).first()
             if not descendant or not hasattr(descendant, 'manager_id') or descendant.manager_id is None:
                 return False
-            return is_descendant(ancestor_id, descendant.manager_id)
+            return is_descendant(ancestor_id, descendant.manager_id, visited)
         
-        # Check if the new manager is a descendant of the user being reassigned
-        if is_descendant(request.user_id, request.new_manager_id):
+        # Only check for cycles if the user currently has reports
+        # (if they're unassigned or have no reports, no cycle is possible)
+        has_reports = db.query(User).filter(
+            hasattr(User, 'manager_id'),
+            User.manager_id == request.user_id
+        ).first() is not None
+        
+        if has_reports and is_descendant(request.user_id, request.new_manager_id):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot assign a descendant as manager (would create cycle)"
+                detail=f"Cannot assign to this manager as it would create a reporting cycle"
             )
     
     # Validate new department if provided
@@ -172,11 +193,15 @@ async def reassign_user(
                 detail="Department not found"
             )
     
-    # Update user
-    if request.new_manager_id is not None:
+    # Update user's manager (including setting to null for unassignment)
+    # Check if new_manager_id was provided in the request (could be null or an ID)
+    # We use 'in' to check if the key exists, not if it has a value
+    if 'new_manager_id' in request.__fields_set__:
         # Set manager_id attribute (assuming it exists in User model)
         if hasattr(user, 'manager_id'):
-            user.manager_id = request.new_manager_id
+            old_manager_id = user.manager_id
+            user.manager_id = request.new_manager_id  # Can be None (null) for unassignment
+            print(f"✅ [BACKEND] Updated user {user.id} ({user.full_name}) manager: {old_manager_id} → {request.new_manager_id}")
         else:
             # If manager_id doesn't exist, we might need to add it to the model
             raise HTTPException(
@@ -186,17 +211,39 @@ async def reassign_user(
     
     if request.new_department_id is not None:
         user.department_id = request.new_department_id
+        
+        # Update all descendants (direct and indirect reports) to the same department
+        def update_descendants_department(parent_id: int, dept_id: int):
+            """Recursively update department for all descendants"""
+            direct_reports = db.query(User).filter(
+                hasattr(User, 'manager_id'),
+                User.manager_id == parent_id
+            ).all()
+            
+            for report in direct_reports:
+                report.department_id = dept_id
+                # Recursively update their reports
+                update_descendants_department(report.id, dept_id)
+        
+        # Update all descendants to the new department
+        update_descendants_department(user.id, request.new_department_id)
     
-    # If new manager has a department and no specific department was provided,
-    # inherit the manager's department
-    if (request.new_manager_id and 
-        not request.new_department_id and 
-        new_manager and 
-        new_manager.department_id):
-        user.department_id = new_manager.department_id
+    # Handle department assignment based on manager
+    if 'new_manager_id' in request.__fields_set__:
+        if request.new_manager_id is None:
+            # Being unassigned - optionally clear department too
+            # (keeping department allows reassignment to same dept later)
+            # For now, we'll keep the department
+            pass
+        elif not request.new_department_id and new_manager and new_manager.department_id:
+            # New manager has a department and no specific department was provided,
+            # so inherit the manager's department
+            user.department_id = new_manager.department_id
     
     db.commit()
     db.refresh(user)
+    
+    print(f"✅ [BACKEND] Database committed. Final state: user {user.id} manager_id={user.manager_id if hasattr(user, 'manager_id') else 'N/A'}")
     
     return {
         "message": "User reassigned successfully",

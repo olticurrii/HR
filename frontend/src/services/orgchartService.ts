@@ -30,7 +30,14 @@ export interface OrgChartResponse {
 export const orgchartService = {
   async getOrgChart(departmentId?: number): Promise<OrgChartResponse> {
     const params = departmentId ? { department_id: departmentId } : {};
-    const response = await api.get('/api/v1/orgchart', { params });
+    // Add cache-busting timestamp to force fresh data
+    const response = await api.get('/api/v1/orgchart', { 
+      params: {
+        ...params,
+        _t: Date.now() // Cache buster
+      }
+    });
+    console.log('📡 [orgchartService] Fetched org chart data:', response.data);
     return response.data;
   },
 

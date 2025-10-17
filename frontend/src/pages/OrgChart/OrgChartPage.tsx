@@ -5,7 +5,7 @@ import { OrgChartResponse } from '../../services/orgchartService';
 import { Department } from '../../services/departmentService';
 import orgchartService from '../../services/orgchartService';
 import departmentService from '../../services/departmentService';
-import SimpleOrgTree from '../../components/orgchart/SimpleOrgTree';
+import DraggableOrgChart from '../../components/orgchart/DraggableOrgChart';
 import UserProfileModal from '../../components/orgchart/UserProfileModal';
 import toast from 'react-hot-toast';
 
@@ -19,6 +19,10 @@ const OrgChartPage: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [zoomLevel, setZoomLevel] = useState<number>(1);
+  
+  // Persistent view state (survives data refresh)
+  const [persistentZoom, setPersistentZoom] = useState<number>(0.8);
+  const [persistentPan, setPersistentPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
     loadData();
@@ -31,6 +35,7 @@ const OrgChartPage: React.FC = () => {
   }, [selectedDepartment]);
 
   const loadData = async () => {
+    console.log('📥 [OrgChartPage] loadData called, fetching from backend...');
     setLoading(true);
     setError(null);
     try {
@@ -40,10 +45,18 @@ const OrgChartPage: React.FC = () => {
         orgchartService.getOrgChart(departmentId),
         departmentService.getAllDepartments()
       ]);
+      
+      console.log('📊 [OrgChartPage] Data fetched:', {
+        assigned: orgChartData.assigned.length,
+        unassigned: orgChartData.unassigned.length,
+        departments: departmentsData.length
+      });
+      
       setOrgData(orgChartData);
       setDepartments(departmentsData);
+      console.log('✅ [OrgChartPage] State updated with new data');
     } catch (error) {
-      console.error('Error loading org chart data:', error);
+      console.error('❌ [OrgChartPage] Error loading org chart data:', error);
       setError('Failed to load organization data');
       toast.error('Failed to load organization data');
     } finally {
@@ -52,17 +65,50 @@ const OrgChartPage: React.FC = () => {
   };
 
   const handleReassign = async (userId: number, newManagerId?: number | null, newDepartmentId?: number | null) => {
+    console.log('🔄 [OrgChartPage] handleReassign called:', { userId, newManagerId, newDepartmentId });
+    
     try {
+      // When assigning to a new manager, also get that manager's department
+      let targetDeptId = newDepartmentId;
+      
+      if (newManagerId && !newDepartmentId) {
+        // Find the manager in the org data to get their department
+        const findUserInTree = (users: any[]): any => {
+          for (const u of users) {
+            if (u.id === newManagerId.toString()) return u;
+            if (u.children && u.children.length > 0) {
+              const found = findUserInTree(u.children);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+        
+        const manager = findUserInTree([...orgData.assigned, ...orgData.unassigned]);
+        if (manager && manager.department) {
+          // Find the department ID by name
+          const dept = departments.find(d => d.name === manager.department);
+          if (dept) {
+            targetDeptId = dept.id;
+          }
+        }
+      }
+      
+      console.log('📡 [OrgChartPage] Calling backend reassignUser...');
       await orgchartService.reassignUser({
         user_id: userId,
         new_manager_id: newManagerId,
-        new_department_id: newDepartmentId
+        new_department_id: targetDeptId
       });
+      
+      console.log('✅ [OrgChartPage] Backend call successful, reloading data...');
+      toast.success('Employee reassigned successfully');
       
       // Reload data to reflect changes
       await loadData();
+      console.log('✅ [OrgChartPage] Data reloaded successfully');
     } catch (error: any) {
-      console.error('Error reassigning user:', error);
+      console.error('❌ [OrgChartPage] Error reassigning user:', error);
       const errorMessage = error.response?.data?.detail || 'Failed to reassign user';
       toast.error(errorMessage);
       throw error; // Re-throw to let the component handle optimistic updates
@@ -124,7 +170,8 @@ const OrgChartPage: React.FC = () => {
 
   // Permission checks
   const canView = user && (user.is_admin || user.job_role?.toLowerCase().includes('manager'));
-  const canDrag = user?.is_admin || false;
+  // Allow admins and managers to drag employees
+  const canDrag = user && (user.is_admin || user.job_role?.toLowerCase().includes('manager') || user.job_role?.toLowerCase().includes('ceo'));
 
   if (!canView) {
     return (
@@ -255,18 +302,11 @@ const OrgChartPage: React.FC = () => {
               <RotateCcw className="w-4 h-4" />
             </button>
           </div>
-          
-          <button
-            onClick={loadData}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-          >
-            Refresh
-          </button>
         </div>
       </div>
 
-      {/* Organization Tree - Full Width */}
-      <div className="bg-white rounded-lg shadow">
+      {/* Organization Tree - Full Width with Unassigned Inside */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center">
             <Users className="w-5 h-5 mr-2" />
@@ -278,87 +318,36 @@ const OrgChartPage: React.FC = () => {
             )}
           </h2>
         </div>
-        <div className="p-4 h-[600px]">
-          <SimpleOrgTree
+        <div className="w-full relative" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
+          <DraggableOrgChart
             data={orgData.assigned}
+            unassignedEmployees={orgData.unassigned}
             onReassign={handleReassign}
-            onDepartmentDrop={handleDepartmentDrop}
             onUserClick={handleUserClick}
-            zoomLevel={zoomLevel}
+            initialZoom={persistentZoom}
+            initialPan={persistentPan}
+            onZoomChange={setPersistentZoom}
+            onPanChange={setPersistentPan}
           />
         </div>
       </div>
-          
-      {/* Unassigned Employees Section */}
-      {orgData.unassigned.length > 0 && (
-        <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <AlertCircle className="w-5 h-5 mr-2 text-yellow-500" />
-                  Unassigned Employees
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Drag employees from here to assign them to managers
-                </p>
-              </div>
-              <div className="p-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {orgData.unassigned.map((employee) => (
-                    <div
-                      key={employee.id}
-                      className={`
-                        bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-3 cursor-move
-                        hover:border-blue-400 hover:bg-blue-50 transition-all duration-200
-                        ${canDrag ? 'hover:shadow-md' : 'cursor-not-allowed opacity-70'}
-                      `}
-                      draggable={canDrag}
-                      onDragStart={(e) => {
-                        if (!canDrag) {
-                          e.preventDefault();
-                          return;
-                        }
-                        e.dataTransfer.effectAllowed = 'move';
-                        e.dataTransfer.setData('text/plain', JSON.stringify({
-                          type: 'user',
-                          id: employee.id,
-                          name: employee.name
-                        }));
-                      }}
-                      title={canDrag ? `Drag ${employee.name} to assign to a manager` : "You don't have permission to drag employees"}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                          {employee.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
-                            {employee.name}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate">
-                            {employee.title}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-      )}
 
-      {/* Instructions for admins */}
-      {canDrag && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">Drag & Drop Instructions</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Drag an employee card onto another employee to make them the manager</li>
-            <li>• Drag an employee card onto a department to move them to that department</li>
-            <li>• The entire subtree (direct reports) will move with the employee</li>
-            <li>• Invalid moves (cycles, permissions) will be blocked with error messages</li>
-            <li>• Click on any employee card to open their profile and make changes</li>
-          </ul>
-        </div>
-      )}
+      {/* Instructions */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-blue-900 mb-2">Navigation & Controls</h3>
+        <ul className="text-sm text-blue-800 space-y-1">
+          <li>• Scroll or use two fingers on touchpad to zoom in/out</li>
+          <li>• Click and drag the background to pan around the chart</li>
+          <li>• Click on any employee card to view their profile</li>
+          {canDrag && (
+            <>
+              <li>• <strong>Drag the handle icon (⋮⋮)</strong> on the left side of employee cards to move them</li>
+              <li>• Drop onto another employee to reassign manager and department</li>
+              <li>• The employee and their entire team will move together automatically</li>
+            </>
+          )}
+        </ul>
+      </div>
 
       {/* Profile Modal */}
       <UserProfileModal

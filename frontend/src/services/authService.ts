@@ -35,7 +35,7 @@ export interface User {
 
 export const authService = {
   async login(email: string, password: string): Promise<LoginResponse> {
-    const formData = new FormData();
+    const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);
     
