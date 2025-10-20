@@ -1,0 +1,59 @@
+╔════════════════════════════════════════════════════════════════╗
+║                  FIX CORS - VISUAL STEPS                       ║
+╚════════════════════════════════════════════════════════════════╝
+
+WHAT YOU'LL SEE:
+----------------
+
+1. RENDER DASHBOARD PAGE:
+   [List of Services]
+   • hr-backend  ← CLICK THIS
+   • hr-frontend
+   • hr-database
+
+2. HR-BACKEND PAGE:
+   Tabs at top:
+   [Overview] [Logs] [Environment] [Settings] [...]
+                      ↑ CLICK THIS
+
+3. ENVIRONMENT PAGE:
+   You'll see a list like:
+   
+   SECRET_KEY = •••••••••••••• [Edit]
+   ALLOWED_ORIGINS = http://localhost:3000 [Edit] ← CLICK EDIT HERE!
+   DATABASE_URL = postgres://... [Edit]
+   PYTHON_VERSION = 3.11.0 [Edit]
+
+4. EDIT DIALOG:
+   Key: ALLOWED_ORIGINS
+   Value: [http://localhost:3000        ] ← DELETE THIS
+   
+   Change to:
+   Value: [https://hr-frontend-yzmo.onrender.com] ← TYPE THIS
+   
+   [Cancel] [Save] ← CLICK SAVE
+
+5. CONFIRMATION:
+   ✓ Environment variable updated
+   ⏳ Deploying...
+
+6. WAIT:
+   Wait 1-2 minutes for:
+   🟡 Deploying → 🟢 Live
+
+7. TEST:
+   Go to: https://hr-frontend-yzmo.onrender.com
+   Press: Ctrl+Shift+R (or Cmd+Shift+R on Mac)
+   Login: admin@company.com / password123
+   ✅ WORKS!
+
+═══════════════════════════════════════════════════════════════
+
+EXACT VALUE TO USE:
+-------------------
+https://hr-frontend-yzmo.onrender.com
+
+(Copy this exactly, paste into Render, no quotes needed)
+
+═══════════════════════════════════════════════════════════════
+
