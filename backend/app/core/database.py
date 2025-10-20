@@ -23,5 +23,6 @@ def init_database():
     from app.models.project import Project
     from app.models.chat import ChatRoom, Message
     from app.models.role import Role, Permission
+    from app.models.time_entry import TimeEntry
     
     Base.metadata.create_all(bind=engine)

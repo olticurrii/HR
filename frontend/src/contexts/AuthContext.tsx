@@ -8,6 +8,7 @@ interface User {
   job_role?: string;
   department_id?: number;
   is_admin: boolean;
+  role: string; // 'admin', 'manager', 'employee'
   avatar_url?: string;
 }
 
@@ -18,6 +19,10 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   hasPermission: (resource: string, action: string) => boolean;
+  hasRole: (allowedRoles: string[]) => boolean;
+  isAdmin: boolean;
+  isManager: boolean;
+  isEmployee: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,13 +75,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const hasPermission = (resource: string, action: string): boolean => {
     if (!user) return false;
-    if (user.is_admin) return true;
+    if (user.role === 'admin') return true;
     
-    // Simple permission logic - can be expanded
-    if (resource === 'users' || resource === 'settings') {
-      return user.is_admin;
+    // Manager permissions
+    if (user.role === 'manager') {
+      if (resource === 'time' && (action === 'view' || action === 'read')) return true;
+      if (resource === 'users' && action === 'view') return true;
+      if (resource === 'projects' || resource === 'tasks') return true;
+      if (resource === 'departments' && action === 'view') return true;
     }
-    return true; // Default to allowing access for other resources
+    
+    // Employee permissions
+    if (resource === 'profile' || resource === 'time') return true;
+    
+    return false;
+  };
+
+  const hasRole = (allowedRoles: string[]): boolean => {
+    if (!user) return false;
+    return allowedRoles.includes(user.role);
   };
 
   const value = {
@@ -86,6 +103,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     isAuthenticated: !!user,
     hasPermission,
+    hasRole,
+    isAdmin: user?.role === 'admin',
+    isManager: user?.role === 'manager',
+    isEmployee: user?.role === 'employee',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

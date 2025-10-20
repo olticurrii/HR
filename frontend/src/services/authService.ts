@@ -46,6 +46,7 @@ export interface User {
   job_role?: string;
   department_id?: number;
   is_admin: boolean;
+  role: string; // 'admin', 'manager', 'employee'
   avatar_url?: string;
 }
 

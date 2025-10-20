@@ -51,7 +51,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         )
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={
+            "sub": user.email,
+            "role": user.role,
+            "user_id": user.id
+        }, 
+        expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -74,6 +79,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         full_name=user.full_name,
         job_role=user.job_role,
         department_id=user.department_id,
+        role=user.role if user.role else "employee",  # Default to employee
         phone=user.phone
     )
     db.add(db_user)

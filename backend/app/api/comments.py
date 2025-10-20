@@ -7,6 +7,7 @@ from app.models.task import Task
 from app.models.user import User
 from app.schemas.comment import CommentCreate, CommentUpdate, CommentResponse
 from app.api.auth import get_current_user
+from app.services.notification_service import notification_service
 
 router = APIRouter()
 
@@ -114,6 +115,26 @@ async def create_comment(
     db.add(db_comment)
     db.commit()
     db.refresh(db_comment)
+    
+    # Send notifications for comment replies
+    if comment.parent_comment_id:
+        try:
+            # Get parent comment author
+            parent_comment = db.query(Comment).filter(Comment.id == comment.parent_comment_id).first()
+            if parent_comment and parent_comment.user_id != current_user.id:
+                notification_service.create_notification(
+                    db=db,
+                    user_id=parent_comment.user_id,
+                    notification_type='comment_reply',
+                    data={
+                        'commenter_name': current_user.full_name,
+                        'task_title': task.title,
+                        'task_id': task.id,
+                        'comment_id': db_comment.id
+                    }
+                )
+        except Exception as e:
+            print(f"⚠️ Failed to send comment reply notification: {e}")
     
     # Load user information for response
     db_comment = (

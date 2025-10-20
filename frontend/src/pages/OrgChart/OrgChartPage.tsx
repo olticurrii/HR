@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Users, AlertCircle, ChevronDown, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Network, Users, AlertCircle, ChevronDown, ZoomIn, ZoomOut, RotateCcw, Layout, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgChartResponse } from '../../services/orgchartService';
 import { Department } from '../../services/departmentService';
 import orgchartService from '../../services/orgchartService';
 import departmentService from '../../services/departmentService';
+import { settingsService, OrganizationSettings } from '../../services/settingsService';
 import DraggableOrgChart from '../../components/orgchart/DraggableOrgChart';
 import UserProfileModal from '../../components/orgchart/UserProfileModal';
 import toast from 'react-hot-toast';
@@ -25,9 +26,14 @@ const OrgChartPage: React.FC = () => {
   // Start with a reasonable zoom to see the org chart
   const [persistentZoom, setPersistentZoom] = useState<number>(0.6);
   const [persistentPan, setPersistentPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  
+  // Organization settings
+  const [orgSettings, setOrgSettings] = useState<OrganizationSettings | null>(null);
+  const [isCompactView, setIsCompactView] = useState(false);
 
   useEffect(() => {
     loadData();
+    loadOrgSettings();
   }, []);
 
   useEffect(() => {
@@ -63,6 +69,16 @@ const OrgChartPage: React.FC = () => {
       toast.error('Failed to load organization data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOrgSettings = async () => {
+    try {
+      const settings = await settingsService.getOrgSettings();
+      setOrgSettings(settings);
+      setIsCompactView(settings.orgchart_compact_view);
+    } catch (error) {
+      console.error('Failed to load org settings:', error);
     }
   };
 
@@ -156,6 +172,56 @@ const OrgChartPage: React.FC = () => {
     collectUsers(orgData.unassigned);
     
     return allUsers;
+  };
+
+  // Get user's subtree (for manager permission check)
+  const getUserSubtree = (userId: number): Set<string> => {
+    const subtree = new Set<string>();
+    subtree.add(userId.toString()); // Include self
+    
+    const collectDescendants = (users: any[]) => {
+      users.forEach(user => {
+        subtree.add(user.id);
+        if (user.children && user.children.length > 0) {
+          collectDescendants(user.children);
+        }
+      });
+    };
+    
+    // Find user's node in the tree
+    const findUserNode = (users: any[]): any | null => {
+      for (const u of users) {
+        if (u.id === userId.toString()) return u;
+        if (u.children && u.children.length > 0) {
+          const found = findUserNode(u.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    
+    const userNode = findUserNode(orgData.assigned);
+    if (userNode && userNode.children) {
+      collectDescendants(userNode.children);
+    }
+    
+    return subtree;
+  };
+
+  // Check if current user can drag a specific node
+  const canDragNode = (nodeId: string): boolean => {
+    // If manager subtree edit is disabled, allow all (original behavior)
+    if (!orgSettings?.orgchart_manager_subtree_edit) return true;
+    
+    // Admins can drag anyone
+    if (user?.is_admin || user?.role === 'admin') return true;
+    
+    // Non-managers cannot drag
+    if (user?.role !== 'manager') return false;
+    
+    // Managers can only drag nodes in their subtree
+    const subtree = getUserSubtree(user.id);
+    return subtree.has(nodeId);
   };
 
   const handleZoomIn = () => {
@@ -277,6 +343,24 @@ const OrgChartPage: React.FC = () => {
             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
           
+          {/* Compact View Toggle */}
+          {orgSettings?.orgchart_compact_view && (
+            <button
+              onClick={() => setIsCompactView(!isCompactView)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                isCompactView
+                  ? 'bg-blue-600 text-white border-blue-700'
+                  : 'bg-white border-gray-300 hover:bg-gray-50'
+              }`}
+              title={isCompactView ? 'Switch to Detailed View' : 'Switch to Compact View'}
+            >
+              {isCompactView ? <Layout className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+              <span className="text-sm font-medium">
+                {isCompactView ? 'Detailed' : 'Compact'}
+              </span>
+            </button>
+          )}
+          
           {/* Zoom Controls */}
           <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
             <button
@@ -330,6 +414,10 @@ const OrgChartPage: React.FC = () => {
             initialPan={persistentPan}
             onZoomChange={setPersistentZoom}
             onPanChange={setPersistentPan}
+            settings={orgSettings}
+            isCompactView={isCompactView}
+            canDragNode={canDragNode}
+            departments={departments}
           />
         </div>
       </div>

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Date, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -9,6 +9,25 @@ class ObjectiveStatus(str, enum.Enum):
     ACTIVE = "active"
     CLOSED = "closed"
     ARCHIVED = "archived"
+
+
+class GoalApprovalStatus(str, enum.Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class KpiPeriod(str, enum.Enum):
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+
+
+class KpiVisibility(str, enum.Enum):
+    ME = "me"
+    MANAGER = "manager"
+    ADMIN = "admin"
 
 
 class KeyResultStatus(str, enum.Enum):
@@ -40,11 +59,21 @@ class PerformanceObjective(Base):
     start_date = Column(DateTime(timezone=True), nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
     progress = Column(Float, default=0.0)
+    
+    # Goal creation and approval tracking
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    approved_by_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    approval_status = Column(Enum(GoalApprovalStatus), default=GoalApprovalStatus.PENDING, nullable=False)
+    approval_date = Column(DateTime(timezone=True), nullable=True)
+    rejection_reason = Column(Text, nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    user = relationship("User", back_populates="performance_objectives")
+    user = relationship("User", foreign_keys=[user_id], back_populates="performance_objectives")
+    created_by = relationship("User", foreign_keys=[created_by_id])
+    approved_by = relationship("User", foreign_keys=[approved_by_id])
     key_results = relationship("PerformanceKeyResult", back_populates="objective", cascade="all, delete-orphan")
 
 
@@ -109,6 +138,7 @@ class ReviewResponse(Base):
     question_id = Column(Integer, ForeignKey("review_questions.id"), nullable=False, index=True)
     rating = Column(Integer, nullable=True)
     comment = Column(Text, nullable=True)
+    is_anonymous_peer = Column(Boolean, default=False, nullable=False)  # For anonymous peer reviews
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
@@ -116,6 +146,30 @@ class ReviewResponse(Base):
     reviewee = relationship("User", foreign_keys=[reviewee_id], back_populates="review_responses_received")
     reviewer = relationship("User", foreign_keys=[reviewer_id], back_populates="review_responses_given")
     question = relationship("ReviewQuestion", back_populates="responses")
+
+
+class KpiSnapshot(Base):
+    """
+    Track KPI values over time for trend analysis
+    """
+    __tablename__ = "kpi_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    kpi_name = Column(String(255), nullable=False, index=True)
+    value = Column(Float, nullable=False)
+    unit = Column(String(50), nullable=True)  # e.g., '%', '#', 'hours', 'score'
+    snapshot_date = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    notes = Column(Text, nullable=True)
+    
+    # Metadata fields
+    period = Column(String(20), default='monthly', nullable=True)  # daily, weekly, monthly, quarterly
+    visibility = Column(String(20), default='manager', nullable=True)  # me, manager, admin
+    measured_by_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+    measured_by = relationship("User", foreign_keys=[measured_by_id])
 
 
 class Competency(Base):

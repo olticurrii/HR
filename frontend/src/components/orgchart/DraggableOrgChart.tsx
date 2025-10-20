@@ -12,8 +12,11 @@ import {
 } from '@dnd-kit/core';
 import { User, Users, ChevronDown, ChevronRight, GripVertical, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { OrgChartNode } from '../../services/orgchartService';
+import { OrganizationSettings } from '../../services/settingsService';
+import { Department } from '../../services/departmentService';
 import toast from 'react-hot-toast';
 import { OrgEdges, useOrgEdgesUpdater } from './OrgEdges';
+import { getDepartmentColor, getDepartmentEdgeColor } from '../../utils/departmentColors';
 
 interface DraggableOrgChartProps {
   data: OrgChartNode[];
@@ -24,6 +27,10 @@ interface DraggableOrgChartProps {
   initialPan?: { x: number; y: number };
   onZoomChange?: (zoom: number) => void;
   onPanChange?: (pan: { x: number; y: number }) => void;
+  settings?: OrganizationSettings | null;
+  isCompactView?: boolean;
+  canDragNode?: (nodeId: string) => boolean;
+  departments?: Department[];
 }
 
 interface EmployeeCardProps {
@@ -33,6 +40,8 @@ interface EmployeeCardProps {
   onExpand?: () => void;
   isExpanded?: boolean;
   onClick?: () => void;
+  departmentColors?: boolean;
+  isCompact?: boolean;
 }
 
 const EmployeeCard: React.FC<EmployeeCardProps> = ({
@@ -42,6 +51,8 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
   onExpand,
   isExpanded,
   onClick,
+  departmentColors = false,
+  isCompact = false,
 }) => {
   const hasChildren = node.children && node.children.length > 0;
   const initials = node.name
@@ -50,14 +61,75 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
     .join('')
     .toUpperCase()
     .slice(0, 2);
+  
+  const avatarUrl = node.avatar_url ? `http://localhost:8000${node.avatar_url}` : null;
+  const deptColor = departmentColors ? getDepartmentColor(node.department) : null;
 
+  // Compact view card
+  if (isCompact) {
+    return (
+      <div
+        className={`
+          employee-card relative w-[140px] rounded-lg shadow-md bg-white
+          transition-all duration-300
+          ${isDragging ? 'opacity-40 scale-95' : 'hover:shadow-lg hover:scale-105'}
+          ${isOver ? 'ring-2 ring-blue-400' : ''}
+          ${deptColor ? `${deptColor.border} border-2 ${deptColor.bg}` : 'border border-gray-200'}
+        `}
+        onClick={onClick}
+      >
+        {/* Drag Handle - Compact */}
+        <div className="absolute top-1 left-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-blue-500 transition-colors z-10 bg-white rounded p-0.5 shadow-sm">
+          <GripVertical className="w-3 h-3" />
+        </div>
+
+        {/* Expand/Collapse - Compact */}
+        {hasChildren && onExpand && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onExpand();
+            }}
+            className="absolute bottom-1 left-1 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors z-10 bg-white rounded-full shadow-sm border border-gray-200"
+          >
+            {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          </button>
+        )}
+
+        {/* Team size badge - Compact */}
+        {hasChildren && (
+          <div className="absolute bottom-1 right-1 bg-blue-100 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center">
+            <Users className="w-2.5 h-2.5 mr-0.5" />
+            {node.children.length}
+          </div>
+        )}
+
+        {/* Main content - Compact */}
+        <div className="flex flex-col items-center justify-center p-3">
+          <div className={`w-10 h-10 rounded-full ${deptColor ? `bg-gradient-to-br ${deptColor.gradient}` : 'bg-gradient-to-br from-blue-500 to-purple-600'} flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white overflow-hidden`}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={node.name} className="w-full h-full object-cover" />
+            ) : (
+              initials
+            )}
+          </div>
+          <div className="text-xs font-bold text-gray-900 text-center leading-tight mt-1.5 px-1 truncate w-full">
+            {node.name}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular detailed card
   return (
     <div
       className={`
         employee-card relative w-[220px] rounded-2xl shadow-lg bg-white
         transition-all duration-300 ease-in-out
         ${isDragging ? 'opacity-40 scale-95' : 'hover:shadow-2xl hover:scale-105'}
-        ${isOver ? 'ring-4 ring-blue-400 border-2 border-blue-500' : 'border border-gray-200'}
+        ${isOver ? 'ring-4 ring-blue-400 border-2 border-blue-500' : `border-2 ${deptColor ? deptColor.border : 'border-gray-200'}`}
+        ${deptColor && !isOver ? deptColor.bg : ''}
       `}
       style={{
         boxShadow: isOver 
@@ -102,8 +174,16 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
       {/* Main content */}
       <div className="flex flex-col items-center justify-center p-5 pt-6 pb-8">
         {/* Avatar */}
-        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-base font-bold mb-3 shadow-lg ring-2 ring-white">
-          {initials}
+        <div className={`w-14 h-14 rounded-full ${deptColor ? `bg-gradient-to-br ${deptColor.gradient}` : 'bg-gradient-to-br from-blue-500 to-purple-600'} flex items-center justify-center text-white text-base font-bold mb-3 shadow-lg ring-2 ring-white overflow-hidden`}>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={node.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            initials
+          )}
         </div>
 
         {/* Name */}
@@ -144,6 +224,9 @@ interface DraggableEmployeeProps {
   activeNodeId?: string | null;
   setCardRef?: (el: HTMLElement | null) => void;
   createNodeRefCallback?: (id: string) => (el: HTMLElement | null) => void;
+  departmentColors?: boolean;
+  isCompact?: boolean;
+  canDrag?: boolean;
 }
 
 const UnassignedEmployeeCard: React.FC<{ employee: OrgChartNode }> = ({ employee }) => {
@@ -151,6 +234,9 @@ const UnassignedEmployeeCard: React.FC<{ employee: OrgChartNode }> = ({ employee
     id: `unassigned-${employee.id}`,
     data: { node: employee },
   });
+
+  const avatarUrl = employee.avatar_url ? `http://localhost:8000${employee.avatar_url}` : null;
+  const initials = employee.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <div
@@ -164,8 +250,16 @@ const UnassignedEmployeeCard: React.FC<{ employee: OrgChartNode }> = ({ employee
       `}
     >
       <div className="flex items-center space-x-2">
-        <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-          {employee.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+        <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={employee.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            initials
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-xs font-semibold text-gray-900 truncate">
@@ -247,10 +341,14 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({
   activeNodeId,
   setCardRef,
   createNodeRefCallback,
+  departmentColors = false,
+  isCompact = false,
+  canDrag = true,
 }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: node.id,
     data: { node },
+    disabled: !canDrag, // Disable dragging based on permission
   });
 
   const { isOver, setNodeRef: setDropRef } = useDroppable({
@@ -290,6 +388,8 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({
           onExpand={hasChildren ? () => onToggleExpand(node.id) : undefined}
           isExpanded={isExpanded}
           onClick={() => onUserClick?.(node)}
+          departmentColors={departmentColors}
+          isCompact={isCompact}
         />
       </div>
 
@@ -313,6 +413,9 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({
                     activeNodeId={activeNodeId}
                     setCardRef={createNodeRefCallback ? createNodeRefCallback(child.id) : undefined}
                     createNodeRefCallback={createNodeRefCallback}
+                    departmentColors={departmentColors}
+                    isCompact={isCompact}
+                    canDrag={canDrag}
                   />
                 ))}
               </div>
@@ -333,6 +436,10 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
   initialPan = { x: 0, y: 0 },
   onZoomChange,
   onPanChange,
+  settings = null,
+  isCompactView = false,
+  canDragNode = () => true,
+  departments = [],
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -758,31 +865,44 @@ const DraggableOrgChart: React.FC<DraggableOrgChartProps> = ({
                   activeNodeId={activeNode?.id || null}
                   setCardRef={createNodeRefCallback(rootNode.id)}
                   createNodeRefCallback={createNodeRefCallback}
+                  departmentColors={settings?.orgchart_department_colors || false}
+                  isCompact={isCompactView}
+                  canDrag={canDragNode(rootNode.id)}
                 />
               ))}
             </div>
             
             {/* Render OrgEdges overlay for smooth connector lines - outside inline-block */}
-            <OrgEdges
-              employees={flattenEmployees(data)}
-              getNodeRef={getNodeRef}
-              containerRef={contentRef}
-              scale={zoom}
-              key={updateTrigger}
-            />
+            {settings?.orgchart_show_connectors && (
+              <OrgEdges
+                employees={flattenEmployees(data)}
+                getNodeRef={getNodeRef}
+                containerRef={contentRef}
+                scale={zoom}
+                key={updateTrigger}
+                departmentColors={settings?.orgchart_department_colors || false}
+              />
+            )}
           </div>
         </div>
       </div>
 
-        {/* Unassigned Employees Sidebar - Always visible, acts as drop zone */}
-        <UnassignedPanel unassignedEmployees={unassignedEmployees} />
+        {/* Unassigned Employees Sidebar - Conditional based on settings */}
+        {settings?.orgchart_show_unassigned_panel && unassignedEmployees.length > 0 && (
+          <UnassignedPanel unassignedEmployees={unassignedEmployees} />
+        )}
       </div>
 
       {/* Drag Overlay - shows the card being dragged */}
       <DragOverlay dropAnimation={null}>
         {activeNode && (
           <div className="rotate-3 scale-110">
-            <EmployeeCard node={activeNode} isDragging={false} />
+            <EmployeeCard 
+              node={activeNode} 
+              isDragging={false}
+              departmentColors={settings?.orgchart_department_colors || false}
+              isCompact={isCompactView}
+            />
           </div>
         )}
       </DragOverlay>

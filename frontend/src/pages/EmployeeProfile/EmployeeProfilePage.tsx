@@ -89,6 +89,12 @@ const EmployeeProfilePage: React.FC = () => {
     }
   };
 
+  const avatarUrl = profile.avatar_url 
+    ? (profile.avatar_url.startsWith('http') 
+        ? profile.avatar_url 
+        : `http://localhost:8000${profile.avatar_url}`)
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
@@ -98,9 +104,9 @@ const EmployeeProfilePage: React.FC = () => {
             {/* Avatar & Name */}
             <div className="flex items-center gap-6">
               <div className="relative">
-                {profile.avatar_url ? (
+                {avatarUrl ? (
                   <img
-                    src={profile.avatar_url}
+                    src={avatarUrl}
                     alt={profile.full_name}
                     className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                   />

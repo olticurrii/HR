@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useState, useRef } from 'react';
+import { getDepartmentEdgeColor } from '../../utils/departmentColors';
 
 export interface OrgEdgesProps {
   employees: any[];
@@ -7,6 +8,7 @@ export interface OrgEdgesProps {
   hiddenIds?: Set<string>;
   containerRef: React.RefObject<HTMLElement>;
   scale?: number; // Current zoom scale
+  departmentColors?: boolean;
 }
 
 interface EdgeData {
@@ -14,6 +16,8 @@ interface EdgeData {
   managerId: string;
   childId: string;
   path: string;
+  color: string;
+  department?: string;
 }
 
 export const OrgEdges: React.FC<OrgEdgesProps> = ({
@@ -23,6 +27,7 @@ export const OrgEdges: React.FC<OrgEdgesProps> = ({
   hiddenIds,
   containerRef,
   scale = 1,
+  departmentColors = false,
 }) => {
   const [edges, setEdges] = useState<EdgeData[]>([]);
   const rafRef = useRef<number>();
@@ -73,11 +78,18 @@ export const OrgEdges: React.FC<OrgEdgesProps> = ({
         const dy = Math.max(24, Math.abs(y2 - y1) * 0.3);
         const path = `M ${x1},${y1} C ${x1},${y1 + dy} ${x2},${y2 - dy} ${x2},${y2}`;
 
+        // Determine edge color
+        const edgeColor = departmentColors && employee.department
+          ? getDepartmentEdgeColor(employee.department)
+          : '#5B8EF1'; // default blue
+
         newEdges.push({
           id: `edge-${employee.managerId}-${employee.id}`,
           managerId: String(employee.managerId),
           childId: String(employee.id),
           path,
+          color: edgeColor,
+          department: employee.department,
         });
         console.log('✅ [OrgEdges] Created edge:', employee.managerId, '→', employee.id, path);
       } catch (err) {
@@ -159,7 +171,7 @@ export const OrgEdges: React.FC<OrgEdgesProps> = ({
             key={edge.id}
             className="org-edge-path"
             d={edge.path}
-            stroke="#5B8EF1"
+            stroke={edge.color}
             strokeWidth={1.5}
             fill="none"
             opacity={0.9}

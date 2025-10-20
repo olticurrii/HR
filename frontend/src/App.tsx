@@ -19,18 +19,22 @@ import TaskDetailPage from './pages/Tasks/TaskDetailPage';
 import ProjectsPage from './pages/Projects/ProjectsPage';
 import ProjectDetailPage from './pages/Projects/ProjectDetailPage';
 import TimeTrackingPage from './pages/TimeTracking/TimeTrackingPage';
-import LeaveManagementPage from './pages/LeaveManagement/LeaveManagementPage';
+import AdminTimeTrackingPage from './pages/TimeTracking/AdminTimeTrackingPage';
+import LeaveManagementPage from './pages/Leave/LeaveManagementPage';
 import FeedbackPage from './pages/Feedback/FeedbackPage';
-import DocumentsPage from './pages/Documents/DocumentsPage';
-import AIInsightsPage from './pages/AIInsights/AIInsightsPage';
+import UnifiedInsightsPage from './pages/Feedback/UnifiedInsightsPage';
 import UserManagementPage from './pages/UserManagement/UserManagementPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import OrgChartPage from './pages/OrgChart/OrgChartPage';
 import EmployeeProfilePage from './pages/EmployeeProfile/EmployeeProfilePage';
 import SettingsPage from './pages/Settings/SettingsPage';
 import RoleManagementPage from './pages/RoleManagement/RoleManagementPage';
+import PermissionsPage from './pages/Permissions/PermissionsPage';
+import RolesPage from './pages/Roles/RolesPage';
 import ChatPage from './pages/Chat/ChatPage';
+import PerformancePage from './pages/Performance/PerformancePage';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
+import UnauthorizedPage from './pages/Unauthorized/UnauthorizedPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -51,6 +55,7 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
               
               {/* Protected Routes */}
               <Route path="/" element={
@@ -66,22 +71,41 @@ function App() {
                 <Route path="projects" element={<ProjectsPage />} />
                 <Route path="projects/:id" element={<ProjectDetailPage />} />
                 <Route path="time-tracking" element={<TimeTrackingPage />} />
+                <Route path="time-tracking/admin" element={
+                  <ProtectedRoute allowedRoles={['admin', 'manager']}>
+                    <AdminTimeTrackingPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="leave-management" element={<LeaveManagementPage />} />
                 <Route path="feedback" element={<FeedbackPage />} />
-                <Route path="documents" element={<DocumentsPage />} />
-                <Route path="ai-insights" element={<AIInsightsPage />} />
+                <Route path="feedback/insights" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <UnifiedInsightsPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="user-management" element={<UserManagementPage />} />
                 <Route path="role-management" element={
-                  <ProtectedRoute requiredPermission={{ resource: 'users', action: 'create' }}>
+                  <ProtectedRoute allowedRoles={['admin']}>
                     <RoleManagementPage />
                   </ProtectedRoute>
                 } />
+                <Route path="permissions" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <PermissionsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="roles" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <RolesPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="settings" element={
-                  <ProtectedRoute requiredPermission={{ resource: 'settings', action: 'view' }}>
+                  <ProtectedRoute allowedRoles={['admin']}>
                     <SettingsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="profile" element={<ProfilePage />} />
+                <Route path="performance" element={<PerformancePage />} />
                 <Route path="people/org-chart" element={<OrgChartPage />} />
                 <Route path="people/:userId" element={<EmployeeProfilePage />} />
                 <Route path="chat" element={<ChatPage />} />

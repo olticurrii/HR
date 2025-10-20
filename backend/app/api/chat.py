@@ -7,6 +7,7 @@ from datetime import datetime
 from app.core.database import get_db
 from app.core.security import verify_token
 from app.models.user import User
+from app.models.chat import ChatRoom
 from app.schemas.chat import (
     ChatRoomResponse, ChatRoomWithMessages, MessageCreate, MessageResponse,
     WebSocketMessage
@@ -14,6 +15,7 @@ from app.schemas.chat import (
 from app.services.chat_service import chat_service
 from app.utils.websocket_manager import manager
 from app.api.auth import get_current_user
+from app.services.notification_service import notification_service
 
 router = APIRouter()
 
@@ -215,6 +217,34 @@ async def create_message(
         )
     
     message = chat_service.create_message(db, message_data, current_user.id, chat_id)
+    
+    # Send notifications to other participants
+    try:
+        # Get chat room to determine type and participants
+        chat_room = db.query(ChatRoom).filter(ChatRoom.id == chat_id).first()
+        if chat_room:
+            # Get all participants except the sender
+            participants = [p for p in chat_room.participants if p.id != current_user.id]
+            
+            for participant in participants:
+                notification_type = 'private_message'
+                if chat_room.type == 'department':
+                    notification_type = 'department_message'
+                elif chat_room.type == 'company':
+                    notification_type = 'company_message'
+                
+                notification_service.create_notification(
+                    db=db,
+                    user_id=participant.id,
+                    notification_type=notification_type,
+                    data={
+                        'sender_name': current_user.full_name,
+                        'chat_id': chat_id,
+                        'message_preview': message.text[:100] + '...' if len(message.text) > 100 else message.text
+                    }
+                )
+    except Exception as e:
+        print(f"⚠️ Failed to send chat notification: {e}")
     
     return MessageResponse(
         id=message.id,

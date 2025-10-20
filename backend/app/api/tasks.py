@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.project import Project
 from app.schemas.task import TaskResponse, TaskCreate, TaskUpdate
 from app.api.auth import get_current_user
+from app.services.notification_service import notification_service
 
 router = APIRouter()
 
@@ -75,6 +76,29 @@ async def create_task(
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
+    
+    # Send notification to assignee if task is assigned
+    if task.assignee_id and task.assignee_id != current_user.id:
+        try:
+            notification_service.create_notification(
+                db=db,
+                user_id=task.assignee_id,
+                notification_type='task_assigned',
+                data={
+                    'task_title': db_task.title,
+                    'task_id': db_task.id,
+                    'assigner_name': current_user.full_name
+                }
+            )
+            
+            # Send email and push notifications
+            notification = notification_service.get_user_notifications(db, task.assignee_id, limit=1)[0]
+            notification_service.send_email_notification(db, task.assignee_id, notification)
+            notification_service.send_push_notification(db, task.assignee_id, notification)
+            
+        except Exception as e:
+            print(f"⚠️ Failed to send task assignment notification: {e}")
+    
     return db_task
 
 @router.get("/{task_id}", response_model=TaskResponse)
@@ -126,11 +150,55 @@ async def update_task(
     elif "status" in update_data and update_data["status"] != TaskStatus.COMPLETED:
         update_data["completed_at"] = None
     
+    # Store old status for notification
+    old_status = task.status
+    
     for field, value in update_data.items():
         setattr(task, field, value)
     
     db.commit()
     db.refresh(task)
+    
+    # Send notifications for status changes
+    if "status" in update_data:
+        try:
+            # Notify task creator if status changed to completed
+            if (update_data["status"] == TaskStatus.COMPLETED and 
+                task.created_by != current_user.id and 
+                task.created_by != task.assignee_id):
+                
+                notification_service.create_notification(
+                    db=db,
+                    user_id=task.created_by,
+                    notification_type='task_reviewed',
+                    data={
+                        'task_title': task.title,
+                        'task_id': task.id,
+                        'reviewer_name': current_user.full_name,
+                        'status': 'completed'
+                    }
+                )
+            
+            # Notify assignee if status changed to completed
+            elif (update_data["status"] == TaskStatus.COMPLETED and 
+                  task.assignee_id and 
+                  task.assignee_id != current_user.id):
+                
+                notification_service.create_notification(
+                    db=db,
+                    user_id=task.assignee_id,
+                    notification_type='task_reviewed',
+                    data={
+                        'task_title': task.title,
+                        'task_id': task.id,
+                        'reviewer_name': current_user.full_name,
+                        'status': 'completed'
+                    }
+                )
+                
+        except Exception as e:
+            print(f"⚠️ Failed to send task status notification: {e}")
+    
     return task
 
 @router.delete("/{task_id}")

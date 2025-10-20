@@ -5,10 +5,15 @@ import { useAuth } from '../../contexts/AuthContext';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredPermission?: { resource: string; action: string };
+  allowedRoles?: string[];  // New: role-based access
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredPermission }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requiredPermission,
+  allowedRoles 
+}) => {
+  const { isAuthenticated, user, loading, hasPermission, hasRole } = useAuth();
 
   if (loading) {
     return (
@@ -25,19 +30,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredPermi
     return <Navigate to="/login" replace />;
   }
 
-  // Check specific permissions if required
+  // Check role-based access
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!hasRole(allowedRoles)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+  }
+
+  // Check permission-based access
   if (requiredPermission) {
-    if (requiredPermission.resource === 'users' || requiredPermission.resource === 'settings') {
-      if (!user?.is_admin) {
-        return (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center text-red-500">
-              <div className="text-lg mb-2">Access Denied</div>
-              <div className="text-sm">You don't have permission to access this page</div>
-            </div>
-          </div>
-        );
-      }
+    if (!hasPermission(requiredPermission.resource, requiredPermission.action)) {
+      return <Navigate to="/unauthorized" replace />;
     }
   }
 

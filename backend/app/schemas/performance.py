@@ -10,6 +10,12 @@ class ObjectiveStatus(str, Enum):
     ARCHIVED = "archived"
 
 
+class GoalApprovalStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class KeyResultStatus(str, Enum):
     OPEN = "open"
     IN_PROGRESS = "in_progress"
@@ -74,6 +80,7 @@ class ObjectiveBase(BaseModel):
 
 class ObjectiveCreate(ObjectiveBase):
     user_id: int
+    request_approval: bool = False  # For self-created goals that need approval
 
 
 class ObjectiveUpdate(BaseModel):
@@ -92,9 +99,22 @@ class ObjectiveResponse(ObjectiveBase):
     created_at: datetime
     updated_at: datetime
     key_results: List[KeyResultResponse] = []
+    
+    # Approval tracking
+    created_by_id: Optional[int] = None
+    approved_by_id: Optional[int] = None
+    approval_status: GoalApprovalStatus = GoalApprovalStatus.PENDING
+    approval_date: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class GoalApprovalAction(BaseModel):
+    goal_id: int
+    action: str = Field(..., pattern="^(approve|reject)$")
+    rejection_reason: Optional[str] = None
 
 
 # Review Cycle Schemas
@@ -148,6 +168,7 @@ class ReviewResponseCreate(BaseModel):
     reviewee_id: int
     reviewer_type: ReviewerType
     answers: List[dict]  # [{question_id, rating?, comment?}]
+    is_anonymous_peer: bool = False  # For anonymous peer reviews
 
 
 class ReviewResponseItem(ReviewResponseBase):
@@ -159,6 +180,8 @@ class ReviewResponseItem(ReviewResponseBase):
     question_id: int
     created_at: datetime
     question: Optional[ReviewQuestionResponse] = None
+    is_anonymous_peer: bool = False
+    reviewer_name: Optional[str] = None  # Masked if anonymous
 
     class Config:
         from_attributes = True
@@ -219,9 +242,53 @@ class ReviewsByType(BaseModel):
     questions_and_answers: List[dict]  # [{question, rating, comment, reviewer_name}]
 
 
+# KPI Snapshot Schemas
+class KpiSnapshotBase(BaseModel):
+    kpi_name: str = Field(..., max_length=255)
+    value: float
+    unit: Optional[str] = Field(None, max_length=50)
+    notes: Optional[str] = None
+
+
+class KpiSnapshotCreate(KpiSnapshotBase):
+    user_id: int
+    snapshot_date: Optional[datetime] = None  # If not provided, uses current date
+    period: Optional[str] = Field('monthly', pattern="^(daily|weekly|monthly|quarterly)$")
+    visibility: Optional[str] = Field('manager', pattern="^(me|manager|admin)$")
+    measured_by_id: Optional[int] = None  # Auto-set to current user if not provided
+
+
+class KpiSnapshotResponse(KpiSnapshotBase):
+    id: int
+    user_id: int
+    snapshot_date: datetime
+    period: Optional[str] = None
+    visibility: Optional[str] = None
+    measured_by_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class KpiTrendData(BaseModel):
+    kpi_name: str
+    data_points: List[dict]  # [{date, value}]
+    unit: Optional[str] = None
+    current_value: Optional[float] = None
+    trend_direction: Optional[str] = None  # "up", "down", "stable"
+
+
 class PerformanceSummary(BaseModel):
     total_objectives: int
     active_objectives: int
     total_progress: float
     objectives: List[ObjectiveResponse]
+
+
+class TopPerformerBadge(BaseModel):
+    has_badge: bool
+    score: Optional[float] = None
+    threshold: int
+    rank: Optional[int] = None
+    percentile: Optional[float] = None
 

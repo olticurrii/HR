@@ -90,8 +90,23 @@ class PerformanceCalculator:
                 "involvement_score": 0
             }
         
-        completed_projects = [p for p in all_projects if p.status.lower() in ['completed', 'done']]
-        active_projects = [p for p in all_projects if p.status.lower() in ['active', 'in_progress', 'in progress']]
+        # Note: Project model doesn't have status field, so we can't filter by status
+        # Instead, count all projects and check their tasks
+        completed_projects = []
+        active_projects = []
+        
+        for p in all_projects:
+            # Check if all project tasks are completed
+            project_tasks = [t for t in p.tasks]
+            if project_tasks:
+                completed_tasks = [t for t in project_tasks if t.status.lower() in ['done', 'completed']]
+                if len(completed_tasks) == len(project_tasks):
+                    completed_projects.append(p)
+                else:
+                    active_projects.append(p)
+            else:
+                # No tasks yet, consider active
+                active_projects.append(p)
         
         # Calculate involvement score based on tasks in projects
         involvement_tasks = db.query(Task).filter(

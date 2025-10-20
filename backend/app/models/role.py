@@ -39,3 +39,24 @@ class Permission(Base):
     created_at = Column(DateTime, default=func.now())
     
     roles = relationship("Role", secondary=role_permissions, back_populates="permissions")
+
+
+# New: Role-based permissions (simpler model for current role system)
+from sqlalchemy import Column, Boolean
+
+class RolePermission(Base):
+    """Simple role-based permissions for admin management"""
+    __tablename__ = "role_permissions_v2"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    role = Column(String(50), nullable=False)  # admin, manager, employee
+    resource = Column(String(50), nullable=False)  # users, tasks, projects, time, etc.
+    can_view = Column(Boolean, default=False)
+    can_create = Column(Boolean, default=False)
+    can_edit = Column(Boolean, default=False)
+    can_delete = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    def __repr__(self):
+        return f"<RolePermission {self.role}:{self.resource}>"

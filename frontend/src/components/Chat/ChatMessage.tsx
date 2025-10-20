@@ -16,17 +16,22 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, currentUserId }) => {
   const isOwnMessage = message.sender_id === currentUserId;
+  const avatarUrl = message.sender_avatar_url 
+    ? (message.sender_avatar_url.startsWith('http') 
+        ? message.sender_avatar_url 
+        : `http://localhost:8000${message.sender_avatar_url}`)
+    : null;
   
   return (
     <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}>
       <div className={`flex max-w-xs lg:max-w-md ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div className="flex-shrink-0">
-          {message.sender_avatar_url ? (
+          {avatarUrl ? (
             <img
-              src={message.sender_avatar_url}
+              src={avatarUrl}
               alt={message.sender_full_name}
-              className="w-8 h-8 rounded-full"
+              className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
