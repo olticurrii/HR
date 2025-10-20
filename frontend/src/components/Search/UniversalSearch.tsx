@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, Loader2 } from 'lucide-react';
 import searchService, { SearchResult } from '../../services/searchService';
+import API_BASE_URL from '../../config';
 
 interface UniversalSearchProps {
   isOpen: boolean;
@@ -138,7 +139,7 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose }) =>
                   const avatarUrl = result.avatar_url
                     ? result.avatar_url.startsWith('http')
                       ? result.avatar_url
-                      : `http://localhost:8000${result.avatar_url}`
+                      : `${API_BASE_URL}${result.avatar_url}`
                     : null;
 
                   return (

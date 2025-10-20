@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Edit, Trash2, X, AlertCircle, CheckCircle, Mail, Briefcase } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import { useAuth } from '../../contexts/AuthContext';
+import API_BASE_URL from '../../config';
 
 interface User {
   id: number;
@@ -69,7 +70,7 @@ const UserManagementPage: React.FC = () => {
   const fetchDepartments = async () => {
     try {
       // Assuming you have a departments service
-      const response = await fetch('http://localhost:8000/api/v1/departments', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/departments`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },

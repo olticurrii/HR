@@ -1,4 +1,5 @@
 import React from 'react';
+import API_BASE_URL from '../../config';
 
 interface ChatMessageProps {
   message: {
@@ -19,7 +20,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, currentUserId }) => 
   const avatarUrl = message.sender_avatar_url 
     ? (message.sender_avatar_url.startsWith('http') 
         ? message.sender_avatar_url 
-        : `http://localhost:8000${message.sender_avatar_url}`)
+        : `${API_BASE_URL}${message.sender_avatar_url}`)
     : null;
   
   return (

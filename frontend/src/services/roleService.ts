@@ -1,6 +1,7 @@
 import axios from 'axios';
+import API_BASE_URL from '../config';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/admin';
+const ADMIN_API_URL = `${API_BASE_URL}/api/v1/admin`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('access_token');
@@ -39,7 +40,7 @@ export interface RoleAssignment {
 export const roleService = {
   // Get all roles
   getAllRoles: async (): Promise<CustomRole[]> => {
-    const response = await axios.get(`${API_BASE_URL}/roles`, {
+    const response = await axios.get(`${ADMIN_API_URL}/roles`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -47,7 +48,7 @@ export const roleService = {
 
   // Get role by ID
   getRoleById: async (roleId: number): Promise<CustomRole> => {
-    const response = await axios.get(`${API_BASE_URL}/roles/${roleId}`, {
+    const response = await axios.get(`${ADMIN_API_URL}/roles/${roleId}`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -55,7 +56,7 @@ export const roleService = {
 
   // Create role
   createRole: async (roleData: CreateRoleData): Promise<CustomRole> => {
-    const response = await axios.post(`${API_BASE_URL}/roles`, roleData, {
+    const response = await axios.post(`${ADMIN_API_URL}/roles`, roleData, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -63,7 +64,7 @@ export const roleService = {
 
   // Update role
   updateRole: async (roleId: number, roleData: UpdateRoleData): Promise<CustomRole> => {
-    const response = await axios.put(`${API_BASE_URL}/roles/${roleId}`, roleData, {
+    const response = await axios.put(`${ADMIN_API_URL}/roles/${roleId}`, roleData, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -71,7 +72,7 @@ export const roleService = {
 
   // Delete role
   deleteRole: async (roleId: number): Promise<{ message: string }> => {
-    const response = await axios.delete(`${API_BASE_URL}/roles/${roleId}`, {
+    const response = await axios.delete(`${ADMIN_API_URL}/roles/${roleId}`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -79,7 +80,7 @@ export const roleService = {
 
   // Assign role to user
   assignRole: async (assignment: RoleAssignment): Promise<any> => {
-    const response = await axios.post(`${API_BASE_URL}/roles/assign`, assignment, {
+    const response = await axios.post(`${ADMIN_API_URL}/roles/assign`, assignment, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -87,10 +88,9 @@ export const roleService = {
 
   // Get users by role
   getUsersByRole: async (roleName: string): Promise<any> => {
-    const response = await axios.get(`${API_BASE_URL}/roles/${roleName}/users`, {
+    const response = await axios.get(`${ADMIN_API_URL}/roles/${roleName}/users`, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 };
-

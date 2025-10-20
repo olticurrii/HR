@@ -1,6 +1,7 @@
 import axios from 'axios';
+import API_BASE_URL from '../config';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/leave';
+const LEAVE_API_URL = `${API_BASE_URL}/api/v1/leave`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('access_token');
@@ -83,7 +84,7 @@ export interface LeaveSummary {
 export const leaveService = {
   // Leave Types
   getLeaveTypes: async (): Promise<LeaveType[]> => {
-    const response = await axios.get(`${API_BASE_URL}/types`, {
+    const response = await axios.get(`${LEAVE_API_URL}/types`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -92,7 +93,7 @@ export const leaveService = {
   // Leave Balances
   getMyLeaveBalances: async (year?: number): Promise<LeaveBalanceSummary> => {
     const params = year ? { year } : {};
-    const response = await axios.get(`${API_BASE_URL}/balances`, {
+    const response = await axios.get(`${LEAVE_API_URL}/balances`, {
       params,
       headers: getAuthHeaders(),
     });
@@ -101,7 +102,7 @@ export const leaveService = {
 
   getUserLeaveBalances: async (userId: number, year?: number): Promise<LeaveBalanceSummary> => {
     const params = year ? { year } : {};
-    const response = await axios.get(`${API_BASE_URL}/balances/${userId}`, {
+    const response = await axios.get(`${LEAVE_API_URL}/balances/${userId}`, {
       params,
       headers: getAuthHeaders(),
     });
@@ -110,7 +111,7 @@ export const leaveService = {
 
   updateLeaveBalance: async (balanceId: number, totalDays: number): Promise<LeaveBalance> => {
     const response = await axios.put(
-      `${API_BASE_URL}/balances/${balanceId}`,
+      `${LEAVE_API_URL}/balances/${balanceId}`,
       { total_days: totalDays },
       { headers: getAuthHeaders() }
     );
@@ -119,7 +120,7 @@ export const leaveService = {
 
   // Leave Requests
   createLeaveRequest: async (request: CreateLeaveRequest): Promise<LeaveRequest> => {
-    const response = await axios.post(`${API_BASE_URL}/requests`, request, {
+    const response = await axios.post(`${LEAVE_API_URL}/requests`, request, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -127,7 +128,7 @@ export const leaveService = {
 
   getMyLeaveRequests: async (statusFilter?: string): Promise<LeaveRequest[]> => {
     const params = statusFilter ? { status_filter: statusFilter } : {};
-    const response = await axios.get(`${API_BASE_URL}/requests`, {
+    const response = await axios.get(`${LEAVE_API_URL}/requests`, {
       params,
       headers: getAuthHeaders(),
     });
@@ -139,7 +140,7 @@ export const leaveService = {
     if (statusFilter) params.status_filter = statusFilter;
     if (userId) params.user_id = userId;
     
-    const response = await axios.get(`${API_BASE_URL}/requests/all`, {
+    const response = await axios.get(`${LEAVE_API_URL}/requests/all`, {
       params,
       headers: getAuthHeaders(),
     });
@@ -148,7 +149,7 @@ export const leaveService = {
 
   reviewLeaveRequest: async (requestId: number, review: ReviewLeaveRequest): Promise<LeaveRequest> => {
     const response = await axios.patch(
-      `${API_BASE_URL}/requests/${requestId}/review`,
+      `${LEAVE_API_URL}/requests/${requestId}/review`,
       review,
       { headers: getAuthHeaders() }
     );
@@ -156,17 +157,16 @@ export const leaveService = {
   },
 
   cancelLeaveRequest: async (requestId: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/requests/${requestId}`, {
+    await axios.delete(`${LEAVE_API_URL}/requests/${requestId}`, {
       headers: getAuthHeaders(),
     });
   },
 
   // Summary
   getLeaveSummary: async (): Promise<LeaveSummary> => {
-    const response = await axios.get(`${API_BASE_URL}/summary`, {
+    const response = await axios.get(`${LEAVE_API_URL}/summary`, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 };
-

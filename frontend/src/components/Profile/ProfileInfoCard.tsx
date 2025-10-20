@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { UserProfile, ProfileUpdate } from '../../services/profileService';
+import API_BASE_URL from '../../config';
 
 interface ProfileInfoCardProps {
   profile: UserProfile;
@@ -66,7 +67,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   };
 
   const avatarUrl = profile.avatar_url
-    ? `http://localhost:8000${profile.avatar_url}`
+    ? `${API_BASE_URL}${profile.avatar_url}`
     : null;
 
   return (

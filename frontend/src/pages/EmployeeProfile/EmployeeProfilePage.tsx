@@ -6,6 +6,7 @@ import { JobTab } from '../../components/EmployeeProfile/JobTab';
 import { PerformanceTab } from '../../components/EmployeeProfile/PerformanceTab';
 import { WorkflowsTab } from '../../components/EmployeeProfile/WorkflowsTab';
 import { useAuth } from '../../contexts/AuthContext';
+import API_BASE_URL from '../../config';
 
 type TabType = 'Personal' | 'Job' | 'Compensation' | 'Time off' | 'Performance' | 'Time' | 'Workflows' | 'More';
 
@@ -92,7 +93,7 @@ const EmployeeProfilePage: React.FC = () => {
   const avatarUrl = profile.avatar_url 
     ? (profile.avatar_url.startsWith('http') 
         ? profile.avatar_url 
-        : `http://localhost:8000${profile.avatar_url}`)
+        : `${API_BASE_URL}${profile.avatar_url}`)
     : null;
 
   return (

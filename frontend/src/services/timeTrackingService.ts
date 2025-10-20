@@ -1,6 +1,7 @@
 import axios from 'axios';
+import API_BASE_URL from '../config';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/time';
+const TIME_API_URL = `${API_BASE_URL}/api/v1/time`;
 
 export interface TimeEntry {
   id: number;
@@ -79,7 +80,7 @@ export const timeTrackingService = {
   // Clock in
   clockIn: async (isTerrain: boolean = false): Promise<TimeEntry> => {
     const response = await axios.post(
-      `${API_BASE_URL}/clock-in`,
+      `${TIME_API_URL}/clock-in`,
       null,
       {
         params: { is_terrain: isTerrain },
@@ -97,7 +98,7 @@ export const timeTrackingService = {
     }
     
     const response = await axios.post(
-      `${API_BASE_URL}/clock-out?${params.toString()}`,
+      `${TIME_API_URL}/clock-out?${params.toString()}`,
       null,
       { headers: getAuthHeaders() }
     );
@@ -107,7 +108,7 @@ export const timeTrackingService = {
   // Start break
   startBreak: async (): Promise<TimeEntry> => {
     const response = await axios.post(
-      `${API_BASE_URL}/start-break`,
+      `${TIME_API_URL}/start-break`,
       null,
       { headers: getAuthHeaders() }
     );
@@ -117,7 +118,7 @@ export const timeTrackingService = {
   // End break
   endBreak: async (): Promise<TimeEntry> => {
     const response = await axios.post(
-      `${API_BASE_URL}/end-break`,
+      `${TIME_API_URL}/end-break`,
       null,
       { headers: getAuthHeaders() }
     );
@@ -127,7 +128,7 @@ export const timeTrackingService = {
   // Toggle terrain work
   toggleTerrain: async (): Promise<TimeEntry> => {
     const response = await axios.post(
-      `${API_BASE_URL}/terrain`,
+      `${TIME_API_URL}/terrain`,
       null,
       { headers: getAuthHeaders() }
     );
@@ -136,7 +137,7 @@ export const timeTrackingService = {
 
   // Get current status
   getStatus: async (): Promise<TimeTrackingStatus> => {
-    const response = await axios.get(`${API_BASE_URL}/status`, {
+    const response = await axios.get(`${TIME_API_URL}/status`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -144,7 +145,7 @@ export const timeTrackingService = {
 
   // Get active users (admin)
   getActiveUsers: async (): Promise<ActiveUser[]> => {
-    const response = await axios.get(`${API_BASE_URL}/active`, {
+    const response = await axios.get(`${TIME_API_URL}/active`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -152,7 +153,7 @@ export const timeTrackingService = {
 
   // Get users who haven't clocked in (admin)
   getNotClockedInUsers: async (): Promise<NotClockedInUser[]> => {
-    const response = await axios.get(`${API_BASE_URL}/not-clocked-in`, {
+    const response = await axios.get(`${TIME_API_URL}/not-clocked-in`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -160,7 +161,7 @@ export const timeTrackingService = {
 
   // Get all users with their time tracking status (admin)
   getAllUsersWithStatus: async (): Promise<UserWithStatus[]> => {
-    const response = await axios.get(`${API_BASE_URL}/all-users-status`, {
+    const response = await axios.get(`${TIME_API_URL}/all-users-status`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -174,7 +175,7 @@ export const timeTrackingService = {
     department_id?: number;
     is_terrain?: boolean;
   }): Promise<TimeEntryRecord[]> => {
-    const response = await axios.get(`${API_BASE_URL}/records`, {
+    const response = await axios.get(`${TIME_API_URL}/records`, {
       params,
       headers: getAuthHeaders(),
     });
@@ -189,7 +190,7 @@ export const timeTrackingService = {
     department_id?: number;
     is_terrain?: boolean;
   }): Promise<void> => {
-    const response = await axios.get(`${API_BASE_URL}/export`, {
+    const response = await axios.get(`${TIME_API_URL}/export`, {
       params,
       headers: getAuthHeaders(),
       responseType: 'blob',

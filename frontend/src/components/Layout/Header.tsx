@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Search } from 'lucide-react';
 import UniversalSearch from '../Search/UniversalSearch';
 import NotificationBell from '../Notifications/NotificationBell';
+import API_BASE_URL from '../../config';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -26,7 +27,7 @@ const Header: React.FC = () => {
   const avatarUrl = user?.avatar_url
     ? user.avatar_url.startsWith('http')
       ? user.avatar_url
-      : `http://localhost:8000${user.avatar_url}`
+      : `${API_BASE_URL}${user.avatar_url}`
     : null;
 
   return (

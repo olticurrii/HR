@@ -17,6 +17,7 @@ import { Department } from '../../services/departmentService';
 import toast from 'react-hot-toast';
 import { OrgEdges, useOrgEdgesUpdater } from './OrgEdges';
 import { getDepartmentColor, getDepartmentEdgeColor } from '../../utils/departmentColors';
+import API_BASE_URL from '../../config';
 
 interface DraggableOrgChartProps {
   data: OrgChartNode[];
@@ -62,7 +63,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
     .toUpperCase()
     .slice(0, 2);
   
-  const avatarUrl = node.avatar_url ? `http://localhost:8000${node.avatar_url}` : null;
+  const avatarUrl = node.avatar_url ? `${API_BASE_URL}${node.avatar_url}` : null;
   const deptColor = departmentColors ? getDepartmentColor(node.department) : null;
 
   // Compact view card
@@ -235,7 +236,7 @@ const UnassignedEmployeeCard: React.FC<{ employee: OrgChartNode }> = ({ employee
     data: { node: employee },
   });
 
-  const avatarUrl = employee.avatar_url ? `http://localhost:8000${employee.avatar_url}` : null;
+  const avatarUrl = employee.avatar_url ? `${API_BASE_URL}${employee.avatar_url}` : null;
   const initials = employee.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import API_BASE_URL from '../config';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/admin';
+const ADMIN_API_URL = `${API_BASE_URL}/api/v1/admin`;
 
 interface User {
   id: number;
@@ -45,7 +46,7 @@ const getAuthHeaders = () => {
 export const adminService = {
   // Get all users
   getAllUsers: async (): Promise<User[]> => {
-    const response = await axios.get(`${API_BASE_URL}/users`, {
+    const response = await axios.get(`${ADMIN_API_URL}/users`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -53,7 +54,7 @@ export const adminService = {
 
   // Get user by ID
   getUserById: async (userId: number): Promise<User> => {
-    const response = await axios.get(`${API_BASE_URL}/users/${userId}`, {
+    const response = await axios.get(`${ADMIN_API_URL}/users/${userId}`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -61,7 +62,7 @@ export const adminService = {
 
   // Create user
   createUser: async (userData: CreateUserData): Promise<User> => {
-    const response = await axios.post(`${API_BASE_URL}/users`, userData, {
+    const response = await axios.post(`${ADMIN_API_URL}/users`, userData, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -69,7 +70,7 @@ export const adminService = {
 
   // Update user
   updateUser: async (userId: number, userData: UpdateUserData): Promise<User> => {
-    const response = await axios.put(`${API_BASE_URL}/users/${userId}`, userData, {
+    const response = await axios.put(`${ADMIN_API_URL}/users/${userId}`, userData, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -78,7 +79,7 @@ export const adminService = {
   // Update user role
   updateUserRole: async (userId: number, role: string): Promise<User> => {
     const response = await axios.patch(
-      `${API_BASE_URL}/users/${userId}/role`,
+      `${ADMIN_API_URL}/users/${userId}/role`,
       { role },
       { headers: getAuthHeaders() }
     );
@@ -87,14 +88,14 @@ export const adminService = {
 
   // Delete user
   deleteUser: async (userId: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/users/${userId}`, {
+    await axios.delete(`${ADMIN_API_URL}/users/${userId}`, {
       headers: getAuthHeaders(),
     });
   },
 
   // Get available system roles
   getAvailableRoles: async (): Promise<any> => {
-    const response = await axios.get(`${API_BASE_URL}/role-options`, {
+    const response = await axios.get(`${ADMIN_API_URL}/role-options`, {
       headers: getAuthHeaders(),
     });
     return response.data;
@@ -102,7 +103,7 @@ export const adminService = {
 
   // Get available custom roles
   getCustomRoles: async (): Promise<any> => {
-    const response = await axios.get(`${API_BASE_URL}/custom-roles`, {
+    const response = await axios.get(`${ADMIN_API_URL}/custom-roles`, {
       headers: getAuthHeaders(),
     });
     return response.data;

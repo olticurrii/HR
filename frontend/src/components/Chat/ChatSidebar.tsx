@@ -3,6 +3,7 @@ import { MessageSquare, Plus, Search, Users, Building2, Users2 } from 'lucide-re
 import chatService, { ChatRoom } from '../../services/chatService';
 import { userService, User } from '../../services/userService';
 import toast from 'react-hot-toast';
+import API_BASE_URL from '../../config';
 
 interface ChatSidebarProps {
   selectedRoomId: number | null;
@@ -85,7 +86,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ selectedRoomId, onRoomSelect,
       // Fallback to direct API call
       try {
         const token = localStorage.getItem('access_token');
-        const response = await fetch('http://localhost:8000/api/v1/users/for-tasks', {
+        const response = await fetch(`${API_BASE_URL}/api/v1/users/for-tasks`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

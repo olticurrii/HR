@@ -1,9 +1,8 @@
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import API_BASE_URL from '../config';
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -77,8 +76,7 @@ export const chatService = {
 
   createWebSocket(roomId: number): WebSocket {
     const token = localStorage.getItem('access_token');
-    const apiBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-    const wsUrl = apiBaseUrl.replace('http', 'ws') + `/api/v1/chat/ws/${roomId}?token=${token}`;
+    const wsUrl = API_BASE_URL.replace('http', 'ws') + `/api/v1/chat/ws/${roomId}?token=${token}`;
     return new WebSocket(wsUrl);
   },
 };
