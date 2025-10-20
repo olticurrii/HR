@@ -122,14 +122,15 @@ async def get_or_create_private_chat(
         unread_count=0
     )
 
-@router.get("/department", response_model=ChatRoomResponse)
+@router.get("/department")
 async def get_department_chat(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get or create department chat for current user's department"""
     if not current_user.department_id:
-        raise HTTPException(status_code=400, detail="User is not assigned to a department")
+        # Return null/empty response instead of error
+        return None
     
     chat = chat_service.get_department_chat(db, current_user.department_id)
     
