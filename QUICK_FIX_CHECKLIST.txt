@@ -1,0 +1,50 @@
+╔══════════════════════════════════════════════════════════════╗
+║          RENDER DEPLOYMENT - FINAL SETUP CHECKLIST          ║
+╚══════════════════════════════════════════════════════════════╝
+
+YOUR URLS:
+----------
+Frontend: https://hr-frontend-yzmo.onrender.com ✓
+Backend:  https://hr-backend-k2gl.onrender.com ✓
+
+
+STEP 1: UPDATE BACKEND CORS
+----------------------------
+□ Go to Render Dashboard → hr-backend service
+□ Click "Environment" tab
+□ Edit ALLOWED_ORIGINS variable
+□ Set to: https://hr-frontend-yzmo.onrender.com
+□ Click Save (will redeploy automatically)
+
+
+STEP 2: UPDATE FRONTEND API URL
+--------------------------------
+□ Go to Render Dashboard → hr-frontend static site
+□ Click "Environment" or "Settings" tab
+□ Add/Edit REACT_APP_API_URL variable
+□ Set to: https://hr-backend-k2gl.onrender.com
+□ Click Save (will redeploy automatically)
+
+
+STEP 3: WAIT FOR DEPLOYMENTS
+-----------------------------
+□ Wait for backend to show "Live" (1-2 min)
+□ Wait for frontend to show "Live" (1-2 min)
+
+
+STEP 4: TEST YOUR APP
+----------------------
+□ Visit: https://hr-frontend-yzmo.onrender.com
+□ Login: admin@company.com / password123
+□ Success? → Change password immediately!
+
+
+COMMON ISSUES:
+--------------
+• "Cannot connect" → Check REACT_APP_API_URL in frontend
+• "CORS error" → Check ALLOWED_ORIGINS in backend
+• Slow load → Normal on free tier, wait 30-60 seconds
+
+
+THAT'S IT! You're done! 🎉
+

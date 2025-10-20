@@ -1,14 +1,51 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.core.database import engine
+from app.core.database import engine, SessionLocal
 from app.core.config import settings as config_settings
 from app.models import Base
 from app.api import auth, users, departments, tasks, projects, project_tasks, chat, comments, orgchart, employee_profile, time_tracking, admin, permissions, roles, leave, feedback, settings, profile, search, performance, notifications, insights
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+try:
+    logger.info("Creating database tables...")
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully!")
+    
+    # Create default admin user if database is empty
+    try:
+        from app.models.user import User
+        from app.core.security import get_password_hash
+        
+        db = SessionLocal()
+        user_count = db.query(User).count()
+        
+        if user_count == 0:
+            logger.info("Creating default admin user...")
+            admin_user = User(
+                email="admin@company.com",
+                full_name="Admin User",
+                hashed_password=get_password_hash("password123"),
+                is_admin=True,
+                is_active=True,
+                role="admin"
+            )
+            db.add(admin_user)
+            db.commit()
+            logger.info("Default admin user created: admin@company.com / password123")
+        db.close()
+    except Exception as e:
+        logger.warning(f"Could not create default admin user: {e}")
+        
+except Exception as e:
+    logger.error(f"Error creating database tables: {e}")
+    raise
 
 app = FastAPI(
     title="HR Management System",
