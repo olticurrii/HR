@@ -20,10 +20,8 @@ services:
     healthCheckPath: /health
 
   # Frontend Service (Static Site)
-  - type: web
+  - type: static
     name: hr-frontend
-    env: static
-    region: oregon
     buildCommand: "cd frontend && npm install && npm run build"
     staticPublishPath: frontend/build
     envVars:
