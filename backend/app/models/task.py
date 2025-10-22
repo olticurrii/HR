@@ -1,20 +1,7 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, Enum, Index
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
-import enum
-
-class TaskStatus(str, enum.Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-
-class TaskPriority(str, enum.Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    URGENT = "urgent"
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -22,15 +9,28 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(Enum(TaskStatus), default=TaskStatus.PENDING)
-    priority = Column(Enum(TaskPriority), default=TaskPriority.MEDIUM)
-    assignee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    # Status and priority (unified - using string for compatibility)
+    status = Column(String, default="To-Do", nullable=False)  # 'To-Do','pending','In-Progress','in_progress','Done','completed','cancelled'
+    priority = Column(String, default="Medium", nullable=False)  # 'Low','low','Medium','medium','High','high','urgent'
+    
+    # Assignment (dual fields for compatibility)
+    assignee_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # FastAPI style
+    assignee = Column(String, nullable=True)  # Streamlit style
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # Project and positioning
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
     position = Column(Integer, default=1, nullable=False)
-    due_date = Column(DateTime, nullable=True)
+    
+    # Dates (due_date as string for Streamlit compatibility)
+    due_date = Column(String, nullable=True)  # Keep as string for Streamlit compatibility
     completed_at = Column(DateTime, nullable=True)
+    
+    # Flags
     is_private = Column(Boolean, default=False)
+    
+    # Timestamps
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     

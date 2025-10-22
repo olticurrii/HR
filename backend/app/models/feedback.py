@@ -1,45 +1,40 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, Float, Enum as SQLEnum, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
-import enum
-
-class RecipientType(str, enum.Enum):
-    USER = "USER"
-    ADMIN = "ADMIN"
-    EVERYONE = "EVERYONE"
-
-class SentimentLabel(str, enum.Enum):
-    POSITIVE = "positive"
-    NEUTRAL = "neutral"
-    NEGATIVE = "negative"
 
 class Feedback(Base):
     __tablename__ = "feedback"
     
     id = Column(Integer, primary_key=True, index=True)
-    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
-    # Recipient types: single user, admin, everyone (company-wide broadcast)
-    recipient_type = Column(SQLEnum(RecipientType), nullable=False)
-    recipient_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # required if recipient_type == USER
-    
-    content = Column(Text, nullable=False)
+    # Author (unified approach)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    full_name = Column(String, nullable=True)  # Streamlit compatibility
     is_anonymous = Column(Boolean, default=False, nullable=False)
     
-    # Threading support
+    # Content (dual fields for compatibility)
+    message = Column(Text, nullable=False)  # Streamlit style
+    content = Column(Text, nullable=True)   # FastAPI style
+    
+    # Recipients (FastAPI features)
+    recipient_type = Column(String, nullable=True)  # 'USER','ADMIN','EVERYONE'
+    recipient_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    # Threading
     parent_id = Column(Integer, ForeignKey("feedback.id"), nullable=True, index=True)
     
     # Moderation
     is_flagged = Column(Boolean, default=False, nullable=False)
     flagged_reason = Column(String, nullable=True)
     
-    # Insights fields (computed on create/update)
-    sentiment_label = Column(SQLEnum(SentimentLabel), nullable=True)
-    sentiment_score = Column(Float, nullable=True)  # e.g., compound score -1..1
-    keywords = Column(JSON, nullable=True)  # list of top keywords
+    # Sentiment analysis (unified)
+    sentiment_score = Column(Float, nullable=True)
+    sentiment_label = Column(String, nullable=True)  # 'Positive','positive','Neutral','neutral','Negative','negative'
+    keywords = Column(Text, nullable=True)  # JSON string for compatibility
     
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    # Timestamps
+    created_at = Column(DateTime, default=func.now(), nullable=False)
     
     # Relationships
     author = relationship("User", foreign_keys=[author_id])

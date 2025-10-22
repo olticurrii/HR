@@ -6,9 +6,15 @@ from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: str, salt: str = None) -> bool:
     import hashlib
-    # Simple hash verification for testing
+    
+    # If salt is provided, use Streamlit format (password + salt)
+    if salt:
+        computed_hash = hashlib.sha256((plain_password + salt).encode("utf-8")).hexdigest()
+        return computed_hash == hashed_password
+    
+    # Otherwise use simple SHA256 for FastAPI format
     return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
 
 def get_password_hash(password: str) -> str:

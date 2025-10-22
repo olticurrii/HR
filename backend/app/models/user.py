@@ -7,26 +7,34 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)  # Made nullable for Streamlit compatibility
+    full_name = Column(String, unique=True, nullable=False)  # Made unique for Streamlit compatibility
     hashed_password = Column(String, nullable=False)
-    full_name = Column(String, nullable=False)
+    salt = Column(String, nullable=False)  # Added for Streamlit compatibility
+    
+    # Role and permissions (unified)
+    role = Column(String, default="employee", nullable=False)  # "admin", "manager", "employee"
+    is_admin = Column(Boolean, default=False)  # Kept for backward compatibility
+    is_active = Column(Boolean, default=True)
+    
+    # Profile information
     job_role = Column(String, nullable=True)
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     manager_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)  # Kept for backward compatibility
-    role = Column(String, default="employee")  # New: "admin", "manager", "employee"
     avatar_url = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     hire_date = Column(DateTime, default=func.now())
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
-    # User preferences
+    # User preferences (from Streamlit app)
     timezone = Column(String, default="UTC", nullable=True)
     locale = Column(String, default="en", nullable=True)
     theme = Column(String, default="light", nullable=True)  # light, dark, system
     email_notifications = Column(Boolean, default=True)
+    
+    # Timestamps
+    last_seen_at = Column(DateTime, nullable=True)  # Added for Streamlit compatibility
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
     department = relationship("Department", back_populates="employees", foreign_keys=[department_id])

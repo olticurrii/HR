@@ -16,7 +16,9 @@ def authenticate_user(db: Session, email: str, password: str):
     user = db.query(User).filter(User.email == email).first()
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    # Pass salt if available (for Streamlit compatibility)
+    salt = getattr(user, 'salt', None)
+    if not verify_password(password, user.hashed_password, salt):
         return False
     return user
 

@@ -50,7 +50,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="Internal HR", layout="wide")
 
 # ---------- Paths ----------
-DB_PATH = "hr_app.db"
+DB_PATH = "backend/hr_app.db"
 UPLOAD_DIR = "uploads"
 POLICY_DIR = "policies"
 os.makedirs(UPLOAD_DIR, exist_ok=True)

@@ -24,7 +24,7 @@ class ChatRoom(Base):
     
     messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
     participants = relationship("User", secondary=chat_participants, back_populates="chat_rooms")
-    department = relationship("Department", back_populates="chat_rooms")
+    department = relationship("Department")
 
 class Message(Base):
     __tablename__ = "messages"

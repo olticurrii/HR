@@ -447,7 +447,7 @@ def get_user_reviews(
     # Group by reviewer type
     grouped = {}
     for resp in responses:
-        rt = resp.reviewer_type.value
+        rt = resp.reviewer_type
         if rt not in grouped:
             grouped[rt] = []
         grouped[rt].append({

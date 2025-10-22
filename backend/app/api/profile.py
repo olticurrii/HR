@@ -318,7 +318,7 @@ def get_performance_summary(
         goals.append(GoalOut(
             id=obj.id,
             title=obj.title,
-            status=obj.status.value if hasattr(obj.status, 'value') else str(obj.status),
+            status=str(obj.status),
             progress=obj.progress or 0.0,
             due_date=obj.due_date
         ))

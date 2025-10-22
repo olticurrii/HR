@@ -14,7 +14,7 @@ from collections import Counter
 from app.core.database import get_db
 from app.api.auth import get_current_user
 from app.models.user import User
-from app.models.feedback import Feedback, RecipientType, SentimentLabel
+from app.models.feedback import Feedback
 from app.schemas.feedback import (
     FeedbackCreate, 
     FeedbackOut, 
@@ -58,13 +58,13 @@ def serialize_feedback(feedback: Feedback, viewer: User, db: Session) -> dict:
         "id": feedback.id,
         "content": feedback.content,
         "is_anonymous": feedback.is_anonymous,
-        "recipient_type": feedback.recipient_type.value,
+        "recipient_type": feedback.recipient_type,
         "recipient_id": feedback.recipient_id,
         "parent_id": feedback.parent_id,
         "is_flagged": feedback.is_flagged,
         "flagged_reason": feedback.flagged_reason if viewer.is_admin or viewer.role == "admin" else None,
         "created_at": feedback.created_at,
-        "sentiment_label": feedback.sentiment_label.value if feedback.sentiment_label else None,
+        "sentiment_label": feedback.sentiment_label if feedback.sentiment_label else None,
         "sentiment_score": feedback.sentiment_score,
         "keywords": feedback.keywords or [],
         "reply_count": reply_count
@@ -165,14 +165,14 @@ def create_feedback(
     # Create feedback (only if it passed moderation)
     feedback = Feedback(
         author_id=current_user.id,
-        recipient_type=RecipientType(payload.recipient_type),
+        recipient_type=payload.recipient_type,
         recipient_id=payload.recipient_id if payload.recipient_type == "USER" else None,
         parent_id=payload.parent_id if org_settings.feedback_enable_threading else None,
         content=clean_content,
         is_anonymous=is_anonymous,
         is_flagged=False,  # Never flagged since we reject flagged content
         flagged_reason=None,
-        sentiment_label=SentimentLabel(analysis['sentiment_label']),
+        sentiment_label=analysis['sentiment_label'],
         sentiment_score=analysis['sentiment_score'],
         keywords=analysis['keywords']
     )
@@ -270,17 +270,17 @@ def get_my_feedback(
     # Feedback directly to me
     conditions.append(
         and_(
-            Feedback.recipient_type == RecipientType.USER,
+            Feedback.recipient_type == "USER",
             Feedback.recipient_id == current_user.id
         )
     )
     
     # Everyone broadcasts
-    conditions.append(Feedback.recipient_type == RecipientType.EVERYONE)
+    conditions.append(Feedback.recipient_type == "EVERYONE")
     
     # Admin-targeted feedback (if I am admin)
     if current_user.is_admin or current_user.role == "admin":
-        conditions.append(Feedback.recipient_type == RecipientType.ADMIN)
+        conditions.append(Feedback.recipient_type == "ADMIN")
     
     query = db.query(Feedback).filter(or_(*conditions))
     query = query.order_by(desc(Feedback.created_at))
@@ -366,7 +366,7 @@ def get_all_feedback(
     # Apply filters
     if recipient_type:
         try:
-            query = query.filter(Feedback.recipient_type == RecipientType(recipient_type))
+            query = query.filter(Feedback.recipient_type == recipient_type)
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -426,7 +426,7 @@ def get_feedback_insights(
     
     for fb in feedbacks:
         if fb.sentiment_label:
-            sentiment_counts[fb.sentiment_label.value] += 1
+            sentiment_counts[fb.sentiment_label] += 1
     
     sentiment_dist = FeedbackSentimentDistribution(
         positive=sentiment_counts['positive'],
@@ -481,7 +481,7 @@ def get_feedback_insights(
     recipient_counts = {}
     
     for fb in feedbacks:
-        if fb.recipient_type == RecipientType.USER and fb.recipient_id:
+        if fb.recipient_type == "USER" and fb.recipient_id:
             key = f"USER_{fb.recipient_id}"
             if key not in recipient_counts:
                 recipient = db.query(User).filter(User.id == fb.recipient_id).first()
@@ -492,7 +492,7 @@ def get_feedback_insights(
                     'count': 0
                 }
             recipient_counts[key]['count'] += 1
-        elif fb.recipient_type == RecipientType.ADMIN:
+        elif fb.recipient_type == "ADMIN":
             key = "ADMIN"
             if key not in recipient_counts:
                 recipient_counts[key] = {
@@ -502,7 +502,7 @@ def get_feedback_insights(
                     'count': 0
                 }
             recipient_counts[key]['count'] += 1
-        elif fb.recipient_type == RecipientType.EVERYONE:
+        elif fb.recipient_type == "EVERYONE":
             key = "EVERYONE"
             if key not in recipient_counts:
                 recipient_counts[key] = {

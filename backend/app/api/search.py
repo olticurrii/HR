@@ -214,12 +214,12 @@ async def universal_search(
                 id=feedback.id,
                 type='feedback',
                 title=f'Feedback: {feedback.content[:50]}...',
-                subtitle=f'{feedback.sentiment_label.value if feedback.sentiment_label else "Neutral"}',
+                subtitle=f'{feedback.sentiment_label if feedback.sentiment_label else "Neutral"}',
                 description=feedback.content[:100],
                 icon='feedback',
                 url=f'/feedback',
                 metadata={
-                    'sentiment': feedback.sentiment_label.value if feedback.sentiment_label else None,
+                    'sentiment': feedback.sentiment_label if feedback.sentiment_label else None,
                     'is_anonymous': feedback.is_anonymous
                 },
                 relevance_score=relevance

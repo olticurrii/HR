@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
@@ -56,7 +55,7 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              
+
               {/* Protected Routes */}
               <Route path="/" element={
                 <ProtectedRoute>
@@ -110,11 +109,11 @@ function App() {
                 <Route path="people/:userId" element={<EmployeeProfilePage />} />
                 <Route path="chat" element={<ChatPage />} />
               </Route>
-              
+
               {/* 404 Route */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
-            
+
             {/* Toast notifications */}
             <Toaster
               position="top-right"

@@ -57,7 +57,7 @@ app = FastAPI(
 import os
 
 # Parse ALLOWED_ORIGINS with better handling
-allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001")
 allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
 
 # Log the origins for debugging
@@ -65,7 +65,7 @@ logger.info(f"CORS allowed origins: {allowed_origins}")
 
 # If no valid origins found, use localhost as fallback
 if not allowed_origins:
-    allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
     logger.warning("No ALLOWED_ORIGINS found, using localhost fallback")
 
 # CORS middleware

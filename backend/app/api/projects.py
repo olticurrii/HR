@@ -62,7 +62,7 @@ async def get_projects(
         # Get task statistics
         tasks = db.query(Task).filter(Task.project_id == project.id).all()
         task_count = len(tasks)
-        completed_tasks = len([t for t in tasks if t.status.value == "completed"])
+        completed_tasks = len([t for t in tasks if t.status in ["completed", "Done"]])
         progress_percentage = (completed_tasks / task_count * 100) if task_count > 0 else 0.0
         
         result.append(ProjectResponse(
@@ -110,8 +110,8 @@ async def get_project(
             "id": task.id,
             "title": task.title,
             "description": task.description,
-            "status": task.status.value,
-            "priority": task.priority.value,
+            "status": task.status,
+            "priority": task.priority,
             "assignee_id": task.assignee_id,
             "assignee_name": assignee.full_name if assignee else None,
             "created_by": task.created_by,
@@ -125,7 +125,7 @@ async def get_project(
     
     # Calculate progress
     task_count = len(tasks)
-    completed_tasks = len([t for t in tasks if t.status.value == "completed"])
+    completed_tasks = len([t for t in tasks if t.status in ["completed", "Done"]])
     progress_percentage = (completed_tasks / task_count * 100) if task_count > 0 else 0.0
     
     return ProjectWithTasks(
@@ -178,7 +178,7 @@ async def update_project(
     # Get task statistics
     tasks = db.query(Task).filter(Task.project_id == project.id).all()
     task_count = len(tasks)
-    completed_tasks = len([t for t in tasks if t.status.value == "completed"])
+    completed_tasks = len([t for t in tasks if t.status in ["completed", "Done"]])
     progress_percentage = (completed_tasks / task_count * 100) if task_count > 0 else 0.0
     
     return ProjectResponse(

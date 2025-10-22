@@ -27,6 +27,7 @@ def get_db():
 
 def init_database():
     """Initialize database with all models"""
+    # Import all models to ensure they're registered
     from app.models.user import User
     from app.models.department import Department
     from app.models.task import Task
@@ -34,5 +35,21 @@ def init_database():
     from app.models.chat import ChatRoom, Message
     from app.models.role import Role, Permission
     from app.models.time_entry import TimeEntry
+    from app.models.feedback import Feedback
+    from app.models.leave import LeaveType, LeaveBalance, LeaveRequest
+    from app.models.comment import Comment
+    from app.models.custom_role import CustomRole
+    from app.models.organization_settings import OrganizationSettings
+    from app.models.session import UserSession
+    from app.models.performance import (
+        PerformanceObjective, PerformanceKeyResult, ReviewCycle,
+        ReviewQuestion, ReviewResponse, Competency, CompetencyScore, KpiSnapshot
+    )
+    from app.models.notification import (
+        InAppNotification, UserNotificationPreferences, NotificationType,
+        Notification, PushNotificationToken
+    )
+    from app.models.insights import DailyFeedbackAggregate, FeedbackKeyword
     
+    # Create all tables
     Base.metadata.create_all(bind=engine)

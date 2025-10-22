@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 from app.core.database import get_db
-from app.models.task import Task, TaskStatus
+from app.models.task import Task
 from app.models.user import User
 from app.models.project import Project
 from app.schemas.task import TaskResponse, TaskCreate, TaskUpdate
@@ -16,7 +16,7 @@ router = APIRouter()
 async def get_tasks(
     skip: int = 0,
     limit: int = 100,
-    status: Optional[TaskStatus] = None,
+    status: Optional[str] = None,
     assignee_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -145,9 +145,9 @@ async def update_task(
     update_data = task_update.dict(exclude_unset=True)
     
     # Set completion date if status is being changed to completed
-    if "status" in update_data and update_data["status"] == TaskStatus.COMPLETED:
+    if "status" in update_data and update_data["status"] in ["completed", "Done"]:
         update_data["completed_at"] = datetime.utcnow()
-    elif "status" in update_data and update_data["status"] != TaskStatus.COMPLETED:
+    elif "status" in update_data and update_data["status"] not in ["completed", "Done"]:
         update_data["completed_at"] = None
     
     # Store old status for notification
@@ -163,7 +163,7 @@ async def update_task(
     if "status" in update_data:
         try:
             # Notify task creator if status changed to completed
-            if (update_data["status"] == TaskStatus.COMPLETED and 
+            if (update_data["status"] in ["completed", "Done"] and 
                 task.created_by != current_user.id and 
                 task.created_by != task.assignee_id):
                 
@@ -180,7 +180,7 @@ async def update_task(
                 )
             
             # Notify assignee if status changed to completed
-            elif (update_data["status"] == TaskStatus.COMPLETED and 
+            elif (update_data["status"] in ["completed", "Done"] and 
                   task.assignee_id and 
                   task.assignee_id != current_user.id):
                 
