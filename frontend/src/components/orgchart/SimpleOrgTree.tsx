@@ -51,7 +51,7 @@ const CustomNode: React.FC<CustomNodeProps> = ({
       }
       const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
       return (
-        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium">
           {initials}
         </div>
       );
@@ -97,7 +97,7 @@ const CustomNode: React.FC<CustomNodeProps> = ({
           {/* Drag Handle - MUST BE FIRST for proper z-index */}
           {canDrag && (
             <div
-              className="absolute top-1 left-1 cursor-grab active:cursor-grabbing text-gray-500 hover:text-blue-600 transition-colors z-50 bg-white rounded p-1 shadow-md border-2 border-gray-300 select-none touch-none"
+              className="absolute top-1 left-1 cursor-grab active:cursor-grabbing text-gray-500 hover:text-primary transition-colors z-50 bg-white rounded p-1 shadow-md border-2 border-gray-300 select-none touch-none"
               draggable={true}
               unselectable="on"
               onMouseDown={(e) => {
@@ -141,7 +141,7 @@ const CustomNode: React.FC<CustomNodeProps> = ({
           
           {/* Team size badge */}
           {teamSize > 0 && (
-            <div className="absolute bottom-2 right-2 bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full flex items-center">
+            <div className="absolute bottom-2 right-2 bg-blue-100 text-primary text-xs px-2 py-0.5 rounded-full flex items-center">
               <Users className="w-3 h-3 mr-1" />
               {teamSize}
             </div>
@@ -155,7 +155,7 @@ const CustomNode: React.FC<CustomNodeProps> = ({
             <div className="mb-2">
               {getAvatar(nodeDatum.name, nodeDatum.avatar_url)}
             </div>
-            <div className="text-xs font-semibold text-gray-900 truncate w-full text-center px-1 leading-tight">
+            <div className="text-xs font-medium text-gray-900 truncate w-full text-center px-1 leading-tight">
               {nodeDatum.name}
             </div>
             <div className="text-[11px] text-gray-500 truncate w-full text-center px-1 mt-0.5 leading-tight">
@@ -165,8 +165,8 @@ const CustomNode: React.FC<CustomNodeProps> = ({
           
           {/* Drop target indicator */}
           {isDragOver && (
-            <div className="absolute inset-0 bg-blue-50 bg-opacity-50 rounded-lg flex items-center justify-center">
-              <div className="text-xs text-blue-600 font-medium bg-white px-2 py-1 rounded shadow">
+            <div className="absolute inset-0 bg-primary-50 bg-opacity-50 rounded-lg flex items-center justify-center">
+              <div className="text-xs text-primary font-medium bg-white px-2 py-1 rounded shadow">
                 Make manager
               </div>
             </div>
@@ -460,15 +460,15 @@ const SimpleOrgTree: React.FC<SimpleOrgTreeProps> = ({ data, onReassign, onDepar
             transform: 'translate(-50%, -50%)',
           }}
         >
-          <div className="w-[180px] h-[100px] rounded-lg border-2 border-blue-500 shadow-2xl bg-white animate-pulse">
+          <div className="w-[180px] h-[100px] rounded-lg border-2 border-primary shadow-2xl bg-white animate-pulse">
             {/* Avatar */}
             <div className="flex flex-col items-center justify-center h-full px-3 py-2">
-              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold mb-1">
+              <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-medium mb-1">
                 {dragPreview.node.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
               </div>
               
               {/* Name */}
-              <div className="text-xs font-semibold text-gray-900 text-center leading-tight truncate w-full px-1">
+              <div className="text-xs font-medium text-gray-900 text-center leading-tight truncate w-full px-1">
                 {dragPreview.node.name}
               </div>
               
@@ -478,7 +478,7 @@ const SimpleOrgTree: React.FC<SimpleOrgTreeProps> = ({ data, onReassign, onDepar
               </div>
               
               {/* Moving indicator */}
-              <div className="mt-1 text-[10px] text-blue-600 font-medium">
+              <div className="mt-1 text-[10px] text-primary font-medium">
                 ✋ Moving...
               </div>
             </div>

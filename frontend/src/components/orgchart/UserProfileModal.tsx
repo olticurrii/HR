@@ -42,7 +42,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     return (
-      <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-semibold">
+      <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-medium">
         {initials}
       </div>
     );
@@ -73,7 +73,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Employee Profile</h2>
+          <h2 className="text-xl font-medium text-gray-900">Employee Profile</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -87,7 +87,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
           {/* Avatar and Basic Info */}
           <div className="text-center">
             {getAvatar(user.name, user.avatar_url)}
-            <h3 className="text-lg font-semibold text-gray-900 mt-3">{user.name}</h3>
+            <h3 className="text-lg font-medium text-gray-900 mt-3">{user.name}</h3>
             <p className="text-gray-500">{user.title}</p>
             {user.department && (
               <div className="flex items-center justify-center text-sm text-gray-400 mt-1">
@@ -118,7 +118,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <select
               value={selectedManager}
               onChange={(e) => setSelectedManager(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value="">No Manager</option>
               {allUsers
@@ -140,7 +140,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <select
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value="">No Department</option>
               {departments.map(dept => (

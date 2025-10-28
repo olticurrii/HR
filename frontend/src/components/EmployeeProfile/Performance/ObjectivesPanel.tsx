@@ -60,7 +60,7 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'done': return 'bg-green-100 text-green-800 border-green-200';
-      case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'in_progress': return 'bg-blue-100 text-blue-800 border-primary-200';
       case 'open': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -75,8 +75,8 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
       {/* Total Progress Bar */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">Total Progress</h3>
-          <span className="text-2xl font-bold text-blue-600">{totalProgress}%</span>
+          <h3 className="text-lg font-medium text-gray-900">Total Progress</h3>
+          <span className="text-2xl font-medium text-primary">{totalProgress}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
           <div
@@ -119,8 +119,8 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h4 className="text-xl font-bold text-gray-900">{objective.title}</h4>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(objective.status)}`}>
+                      <h4 className="text-xl font-medium text-gray-900">{objective.title}</h4>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(objective.status)}`}>
                         {objective.status.toUpperCase()}
                       </span>
                     </div>
@@ -156,7 +156,7 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
                       style={{ width: `${objective.progress}%` }}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-gray-700 min-w-[50px] text-right">
+                  <span className="text-sm font-medium text-gray-700 min-w-[50px] text-right">
                     {Math.round(objective.progress)}%
                   </span>
                 </div>
@@ -165,13 +165,13 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
               {/* Key Results (Expandable) */}
               {expandedIds.has(objective.id) && objective.key_results.length > 0 && (
                 <div className="p-6 space-y-3 bg-gray-50">
-                  <h5 className="font-semibold text-gray-700 mb-4">Key Results</h5>
+                  <h5 className="font-medium text-gray-700 mb-4">Key Results</h5>
                   {objective.key_results.map((kr) => (
                     <div key={kr.id} className="bg-white rounded-lg p-4 border border-gray-200">
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getStatusColor(kr.status)}`}>
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(kr.status)}`}>
                               KR
                             </span>
                             <span className="font-medium text-gray-900">{kr.title}</span>
@@ -182,7 +182,7 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
                             </p>
                           )}
                         </div>
-                        <span className="text-sm font-bold text-blue-600 ml-4">
+                        <span className="text-sm font-medium text-primary ml-4">
                           {Math.round(kr.progress)}%
                         </span>
                       </div>
@@ -190,7 +190,7 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
                       <div className="flex items-center gap-3">
                         <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
                           <div
-                            className="bg-blue-500 h-full transition-all duration-300"
+                            className="bg-primary-500 h-full transition-all duration-300"
                             style={{ width: `${kr.progress}%` }}
                           />
                         </div>
@@ -199,7 +199,7 @@ export const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({ userId }) => {
                             type="number"
                             value={kr.current_value}
                             onChange={(e) => updateKRProgress(kr.id, parseFloat(e.target.value) || 0)}
-                            className="w-24 px-3 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                            className="w-24 px-3 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary"
                             step="0.1"
                             min="0"
                             max={kr.target_value}

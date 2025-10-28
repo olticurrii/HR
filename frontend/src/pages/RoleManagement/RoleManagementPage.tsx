@@ -111,7 +111,7 @@ const RoleManagementPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-2xl font-medium text-gray-900 flex items-center">
             <Shield className="w-6 h-6 mr-2" />
             User & Role Management
           </h1>
@@ -183,7 +183,7 @@ const RoleManagementPage: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
-                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${
                       user.is_active
                         ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
@@ -217,7 +217,7 @@ const RoleManagementPage: React.FC = () => {
           <div className="flex min-h-full items-center justify-center p-4">
             <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Create New User</h3>
+                <h3 className="text-lg font-medium text-gray-900">Create New User</h3>
                 <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
                   <X className="w-5 h-5" />
                 </button>
@@ -230,7 +230,7 @@ const RoleManagementPage: React.FC = () => {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   />
                 </div>
                 <div>
@@ -240,7 +240,7 @@ const RoleManagementPage: React.FC = () => {
                     required
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   />
                 </div>
                 <div>
@@ -250,7 +250,7 @@ const RoleManagementPage: React.FC = () => {
                     required
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   />
                 </div>
                 <div>
@@ -258,7 +258,7 @@ const RoleManagementPage: React.FC = () => {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   >
                     <option value="employee">Employee</option>
                     <option value="manager">Manager</option>
@@ -271,7 +271,7 @@ const RoleManagementPage: React.FC = () => {
                     type="text"
                     value={formData.job_role}
                     onChange={(e) => setFormData({ ...formData, job_role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
@@ -306,7 +306,7 @@ const RoleManagementPage: React.FC = () => {
                   <AlertCircle className="w-6 h-6 text-red-600" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">Delete User</h3>
+              <h3 className="text-lg font-medium text-gray-900 text-center mb-2">Delete User</h3>
               <p className="text-sm text-gray-600 text-center mb-6">
                 Are you sure you want to delete <strong>{selectedUser.full_name}</strong>? This action cannot be undone.
               </p>

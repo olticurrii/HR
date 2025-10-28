@@ -93,7 +93,7 @@ const InsightsPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-2xl font-medium text-gray-900 flex items-center">
             <BarChart3 className="w-6 h-6 mr-2" />
             Feedback Insights
           </h1>
@@ -104,7 +104,7 @@ const InsightsPage: React.FC = () => {
           <select
             value={windowDays}
             onChange={(e) => setWindowDays(Number(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value={7}>Last 7 days</option>
             <option value={30}>Last 30 days</option>
@@ -121,9 +121,9 @@ const InsightsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Feedback</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{insights.total_feedback}</p>
+              <p className="text-3xl font-medium text-gray-900 mt-2">{insights.total_feedback}</p>
             </div>
-            <MessageCircle className="w-10 h-10 text-blue-500" />
+            <MessageCircle className="w-10 h-10 text-primary" />
           </div>
         </div>
 
@@ -131,7 +131,7 @@ const InsightsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Positive</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">
+              <p className="text-3xl font-medium text-green-600 mt-2">
                 {insights.sentiment.positive_pct}%
               </p>
               <p className="text-xs text-gray-500 mt-1">
@@ -146,7 +146,7 @@ const InsightsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Neutral</p>
-              <p className="text-3xl font-bold text-gray-600 mt-2">
+              <p className="text-3xl font-medium text-gray-600 mt-2">
                 {insights.sentiment.neutral_pct}%
               </p>
               <p className="text-xs text-gray-500 mt-1">{insights.sentiment.neutral} feedbacks</p>
@@ -159,7 +159,7 @@ const InsightsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Negative</p>
-              <p className="text-3xl font-bold text-red-600 mt-2">
+              <p className="text-3xl font-medium text-red-600 mt-2">
                 {insights.sentiment.negative_pct}%
               </p>
               <p className="text-xs text-gray-500 mt-1">
@@ -175,7 +175,7 @@ const InsightsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sentiment Distribution */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
+          <h2 className="text-lg font-medium mb-4 flex items-center">
             <PieChart className="w-5 h-5 mr-2" />
             Sentiment Distribution
           </h2>
@@ -202,7 +202,7 @@ const InsightsPage: React.FC = () => {
 
         {/* Feedback Trend */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
+          <h2 className="text-lg font-medium mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2" />
             Feedback Trend Over Time
           </h2>
@@ -235,7 +235,7 @@ const InsightsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Keywords */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
+          <h2 className="text-lg font-medium mb-4 flex items-center">
             <Tag className="w-5 h-5 mr-2" />
             Top Keywords
           </h2>
@@ -262,7 +262,7 @@ const InsightsPage: React.FC = () => {
 
         {/* Sentiment Trend */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
+          <h2 className="text-lg font-medium mb-4 flex items-center">
             <TrendingUp className="w-5 h-5 mr-2" />
             Average Sentiment Over Time
           </h2>
@@ -296,7 +296,7 @@ const InsightsPage: React.FC = () => {
 
       {/* Top Recipients */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4 flex items-center">
+        <h2 className="text-lg font-medium mb-4 flex items-center">
           <Users className="w-5 h-5 mr-2" />
           Top Feedback Recipients
         </h2>

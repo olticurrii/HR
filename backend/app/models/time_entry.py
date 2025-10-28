@@ -9,8 +9,6 @@ class TimeEntry(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    full_name = Column(String, nullable=True)  # Streamlit compatibility
-    day = Column(String, nullable=True)  # Streamlit compatibility (YYYY-MM-DD format)
     
     # Clock times
     clock_in = Column(DateTime, nullable=True, default=func.now())
@@ -21,7 +19,6 @@ class TimeEntry(Base):
     # Additional fields
     is_terrain = Column(Boolean, default=False)
     work_summary = Column(Text, nullable=True)
-    notes = Column(Text, nullable=True)  # Streamlit compatibility
     
     # Timestamps
     created_at = Column(DateTime, default=func.now())

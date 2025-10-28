@@ -168,8 +168,8 @@ const NotificationPreferencesCard: React.FC = () => {
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
-          <Bell className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Notification Preferences</h3>
+          <Bell className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-medium text-gray-900">Notification Preferences</h3>
         </div>
         <button
           onClick={savePreferences}
@@ -190,7 +190,7 @@ const NotificationPreferencesCard: React.FC = () => {
 
       {/* Push Notification Status */}
       {pushSupported && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-6 p-4 bg-primary-50 rounded-lg border border-primary-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               {pushSubscribed ? (
@@ -242,7 +242,7 @@ const NotificationPreferencesCard: React.FC = () => {
             <div className="flex space-x-2">
               <button
                 onClick={() => toggleAllForType('email', true)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-primary hover:text-blue-800"
               >
                 All
               </button>
@@ -265,7 +265,7 @@ const NotificationPreferencesCard: React.FC = () => {
             <div className="flex space-x-2">
               <button
                 onClick={() => toggleAllForType('inapp', true)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-primary hover:text-blue-800"
               >
                 All
               </button>
@@ -288,7 +288,7 @@ const NotificationPreferencesCard: React.FC = () => {
             <div className="flex space-x-2">
               <button
                 onClick={() => toggleAllForType('push', true)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-primary hover:text-blue-800"
               >
                 All
               </button>
@@ -320,7 +320,7 @@ const NotificationPreferencesCard: React.FC = () => {
                         type="checkbox"
                         checked={preferences[item.key as keyof NotificationPreferences] as boolean}
                         onChange={(e) => updatePreference(item.key as keyof NotificationPreferences, e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                       />
                       <Mail className="w-3 h-3 text-gray-500" />
                     </label>
@@ -329,7 +329,7 @@ const NotificationPreferencesCard: React.FC = () => {
                         type="checkbox"
                         checked={preferences[item.key.replace('email_', 'inapp_') as keyof NotificationPreferences] as boolean}
                         onChange={(e) => updatePreference(item.key.replace('email_', 'inapp_') as keyof NotificationPreferences, e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                       />
                       <Monitor className="w-3 h-3 text-gray-500" />
                     </label>
@@ -338,7 +338,7 @@ const NotificationPreferencesCard: React.FC = () => {
                         type="checkbox"
                         checked={preferences[item.key.replace('email_', 'push_') as keyof NotificationPreferences] as boolean}
                         onChange={(e) => updatePreference(item.key.replace('email_', 'push_') as keyof NotificationPreferences, e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                       />
                       <Smartphone className="w-3 h-3 text-gray-500" />
                     </label>

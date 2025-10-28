@@ -126,7 +126,7 @@ const RolesPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Loading roles...</p>
         </div>
       </div>
@@ -139,8 +139,8 @@ const RolesPage: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Shield className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-medium text-gray-900 flex items-center gap-3">
+              <Shield className="w-8 h-8 text-primary" />
               Role Management
             </h1>
             <p className="mt-2 text-gray-600">
@@ -220,7 +220,7 @@ const RolesPage: React.FC = () => {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => openEditModal(role)}
-                        className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded"
+                        className="text-primary hover:text-blue-900 p-2 hover:bg-primary-50 rounded"
                         title="Edit role"
                       >
                         <Edit className="w-4 h-4" />
@@ -248,7 +248,7 @@ const RolesPage: React.FC = () => {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Create New Role</h2>
+            <h2 className="text-xl font-medium mb-4">Create New Role</h2>
             <form onSubmit={handleCreateRole}>
               <div className="space-y-4">
                 <div>
@@ -321,7 +321,7 @@ const RolesPage: React.FC = () => {
       {showEditModal && selectedRole && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Edit Role</h2>
+            <h2 className="text-xl font-medium mb-4">Edit Role</h2>
             <form onSubmit={handleUpdateRole}>
               <div className="space-y-4">
                 <div>
@@ -394,7 +394,7 @@ const RolesPage: React.FC = () => {
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
-              <h2 className="text-xl font-bold">Delete Role</h2>
+              <h2 className="text-xl font-medium">Delete Role</h2>
             </div>
             
             <p className="text-gray-600 mb-6">

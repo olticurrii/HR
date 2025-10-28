@@ -15,11 +15,12 @@ import DashboardPage from './pages/Dashboard/DashboardPage';
 import TasksPage from './pages/Tasks/TasksPage';
 import CreateTaskPage from './pages/Tasks/CreateTaskPage';
 import TaskDetailPage from './pages/Tasks/TaskDetailPage';
+import EditTaskPage from './pages/Tasks/EditTaskPage';
 import ProjectsPage from './pages/Projects/ProjectsPage';
 import ProjectDetailPage from './pages/Projects/ProjectDetailPage';
 import TimeTrackingPage from './pages/TimeTracking/TimeTrackingPage';
 import AdminTimeTrackingPage from './pages/TimeTracking/AdminTimeTrackingPage';
-import LeaveManagementPage from './pages/Leave/LeaveManagementPage';
+import LeaveManagementPage from './pages/LeaveManagement/LeaveManagementPage';
 import FeedbackPage from './pages/Feedback/FeedbackPage';
 import UnifiedInsightsPage from './pages/Feedback/UnifiedInsightsPage';
 import UserManagementPage from './pages/UserManagement/UserManagementPage';
@@ -31,6 +32,8 @@ import RoleManagementPage from './pages/RoleManagement/RoleManagementPage';
 import PermissionsPage from './pages/Permissions/PermissionsPage';
 import RolesPage from './pages/Roles/RolesPage';
 import ChatPage from './pages/Chat/ChatPage';
+import ModernChatPage from './pages/Chat/ModernChatPage';
+import ChatConversationPage from './pages/Chat/ChatConversationPage';
 import PerformancePage from './pages/Performance/PerformancePage';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
 import UnauthorizedPage from './pages/Unauthorized/UnauthorizedPage';
@@ -67,6 +70,7 @@ function App() {
                 <Route path="tasks" element={<TasksPage />} />
                 <Route path="tasks/create" element={<CreateTaskPage />} />
                 <Route path="tasks/:id" element={<TaskDetailPage />} />
+                <Route path="tasks/:id/edit" element={<EditTaskPage />} />
                 <Route path="projects" element={<ProjectsPage />} />
                 <Route path="projects/:id" element={<ProjectDetailPage />} />
                 <Route path="time-tracking" element={<TimeTrackingPage />} />
@@ -107,7 +111,8 @@ function App() {
                 <Route path="performance" element={<PerformancePage />} />
                 <Route path="people/org-chart" element={<OrgChartPage />} />
                 <Route path="people/:userId" element={<EmployeeProfilePage />} />
-                <Route path="chat" element={<ChatPage />} />
+                <Route path="chat" element={<ModernChatPage />} />
+                <Route path="chat/:id" element={<ChatConversationPage />} />
               </Route>
 
               {/* 404 Route */}

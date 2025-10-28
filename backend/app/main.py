@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.database import engine, SessionLocal
 from app.core.config import settings as config_settings
 from app.models import Base
-from app.api import auth, users, departments, tasks, projects, project_tasks, chat, comments, orgchart, employee_profile, time_tracking, admin, permissions, roles, leave, feedback, settings, profile, search, performance, notifications, insights
+from app.api import auth, users, departments, tasks, projects, project_tasks, chat, comments, orgchart, employee_profile, time_tracking, admin, permissions, roles, leave, feedback, settings, profile, search, performance, notifications, insights, kpi_automation
 import os
 import logging
 
@@ -53,6 +53,27 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Initialize KPI background scheduler on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize background services on application startup"""
+    try:
+        from app.services.kpi_scheduler import start_kpi_scheduler
+        start_kpi_scheduler()
+        logger.info("✅ Background services initialized successfully")
+    except Exception as e:
+        logger.error(f"❌ Error starting background services: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup background services on application shutdown"""
+    try:
+        from app.services.kpi_scheduler import stop_kpi_scheduler
+        stop_kpi_scheduler()
+        logger.info("✅ Background services stopped successfully")
+    except Exception as e:
+        logger.error(f"❌ Error stopping background services: {e}")
+
 # Get allowed origins from environment or use defaults
 import os
 
@@ -98,6 +119,7 @@ app.include_router(settings.router, prefix="/api/v1", tags=["Settings"])
 app.include_router(profile.router, prefix="/api/v1", tags=["Profile"])
 app.include_router(search.router, prefix="/api/v1", tags=["Search"])
 app.include_router(performance.router, prefix="/api/v1", tags=["Performance"])
+app.include_router(kpi_automation.router, tags=["KPI Automation"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(insights.router, prefix="/api/v1", tags=["Insights"])
 

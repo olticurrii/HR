@@ -1,91 +1,169 @@
 import React, { useState, useEffect } from 'react';
-import { Award, TrendingUp } from 'lucide-react';
-import { performanceService } from '../../services/performanceService';
+import { motion } from 'framer-motion';
+import { Award, Star, TrendingUp, Trophy } from 'lucide-react';
+import { performanceService, TopPerformerBadge as TopPerformerBadgeType } from '../../services/performanceService';
 
 interface TopPerformerBadgeProps {
   userId: number;
-  showDetails?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  showDetails?: boolean;
 }
 
-const TopPerformerBadge: React.FC<TopPerformerBadgeProps> = ({
-  userId,
-  showDetails = false,
-  size = 'md'
+const TopPerformerBadge: React.FC<TopPerformerBadgeProps> = ({ 
+  userId, 
+  size = 'md', 
+  showDetails = false 
 }) => {
-  const [badge, setBadge] = useState<any>(null);
+  const [badgeData, setBadgeData] = useState<TopPerformerBadgeType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadBadge();
+    loadBadgeData();
   }, [userId]);
 
-  const loadBadge = async () => {
+  const loadBadgeData = async () => {
     try {
       setLoading(true);
       const data = await performanceService.getTopPerformerBadge(userId);
-      setBadge(data);
-    } catch (err: any) {
-      // Silently fail if module is disabled (403) or other errors
-      // Don't show error to user - just don't display badge
-      if (err.response?.status !== 403) {
-        console.error('Failed to load top performer badge:', err);
-      }
+      setBadgeData(data);
+    } catch (err) {
+      console.error('Failed to load top performer badge:', err);
+      setError('Failed to load badge data');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !badge || !badge.has_badge) {
-    return null;
-  }
-
-  const sizeClasses = {
-    sm: 'text-xs px-2 py-1',
-    md: 'text-sm px-3 py-1.5',
-    lg: 'text-base px-4 py-2'
-  };
-
-  const iconSizes = {
-    sm: 'w-3 h-3',
-    md: 'w-4 h-4',
-    lg: 'w-5 h-5'
-  };
-
-  if (showDetails) {
+  if (loading) {
     return (
-      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <Award className="w-12 h-12 text-yellow-500" />
+      <div className={`inline-flex items-center ${getSizeClasses(size).container}`}>
+        <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full ${getSizeClasses(size).icon}`}></div>
+        {showDetails && (
+          <div className="ml-2">
+            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-20 rounded"></div>
           </div>
-          <div className="ml-4 flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              Top Performer
-              <span className="ml-2 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full">
-                {badge.score?.toFixed(1)}%
-              </span>
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Performance score exceeds the {badge.threshold}% threshold
-            </p>
-            <div className="mt-2 flex items-center text-sm text-gray-500">
-              <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
-              Based on recent review scores
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     );
   }
 
+  if (error || !badgeData) {
+    return null;
+  }
+
+  if (!badgeData.has_badge) {
+    return showDetails ? (
+      <div className={`inline-flex items-center ${getSizeClasses(size).container}`}>
+        <TrendingUp className={`text-gray-400 ${getSizeClasses(size).icon}`} />
+        <div className="ml-2 text-gray-500 dark:text-gray-400">
+          <div className={`font-medium ${getSizeClasses(size).text}`}>
+            {badgeData.score?.toFixed(1) || 0}% Performance
+          </div>
+          <div className={`text-xs opacity-75`}>
+            Goal: {badgeData.threshold}%
+          </div>
+        </div>
+      </div>
+    ) : null;
+  }
+
+  const getBadgeIcon = () => {
+    if (badgeData.rank && badgeData.rank <= 3) {
+      return Trophy;
+    }
+    if (badgeData.percentile && badgeData.percentile >= 95) {
+      return Star;
+    }
+    return Award;
+  };
+
+  const getBadgeColor = () => {
+    if (badgeData.rank && badgeData.rank <= 3) {
+      switch (badgeData.rank) {
+        case 1: return 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30';
+        case 2: return 'text-gray-500 bg-gray-100 dark:bg-gray-800';
+        case 3: return 'text-orange-600 bg-orange-100 dark:bg-orange-900/30';
+        default: return 'text-primary bg-blue-100 dark:bg-blue-900/30';
+      }
+    }
+    if (badgeData.percentile && badgeData.percentile >= 95) {
+      return 'text-purple-600 bg-purple-100 dark:bg-purple-900/30';
+    }
+    return 'text-green-600 bg-green-100 dark:bg-green-900/30';
+  };
+
+  const BadgeIcon = getBadgeIcon();
+
   return (
-    <span className={`inline-flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-semibold rounded-full ${sizeClasses[size]}`}>
-      <Award className={iconSizes[size]} />
-      Top Performer
-    </span>
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+      className={`inline-flex items-center ${getSizeClasses(size).container}`}
+    >
+      <motion.div
+        animate={{ 
+          rotate: [0, 5, -5, 0],
+          scale: [1, 1.05, 1]
+        }}
+        transition={{ 
+          duration: 2,
+          repeat: Infinity,
+          repeatDelay: 3,
+          ease: "easeInOut"
+        }}
+        className={`flex items-center justify-center rounded-full ${getBadgeColor()} ${getSizeClasses(size).badge}`}
+      >
+        <BadgeIcon className={`${getSizeClasses(size).icon}`} />
+      </motion.div>
+      
+      {showDetails && (
+        <div className="ml-2">
+          <div className={`font-medium text-gray-900 dark:text-white ${getSizeClasses(size).text}`}>
+            Top Performer
+          </div>
+          <div className={`text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-2`}>
+            {badgeData.score && (
+              <span>{badgeData.score.toFixed(1)}% Score</span>
+            )}
+            {badgeData.rank && (
+              <span>Rank #{badgeData.rank}</span>
+            )}
+            {badgeData.percentile && (
+              <span>{badgeData.percentile}th percentile</span>
+            )}
+          </div>
+        </div>
+      )}
+    </motion.div>
   );
 };
 
-export default TopPerformerBadge;
+function getSizeClasses(size: 'sm' | 'md' | 'lg') {
+  switch (size) {
+    case 'sm':
+      return {
+        container: 'text-sm',
+        badge: 'w-6 h-6',
+        icon: 'w-3 h-3',
+        text: 'text-sm'
+      };
+    case 'lg':
+      return {
+        container: 'text-lg',
+        badge: 'w-12 h-12',
+        icon: 'w-6 h-6',
+        text: 'text-lg'
+      };
+    default: // md
+      return {
+        container: 'text-base',
+        badge: 'w-8 h-8',
+        icon: 'w-4 h-4',
+        text: 'text-base'
+      };
+  }
+}
 
+export default TopPerformerBadge;

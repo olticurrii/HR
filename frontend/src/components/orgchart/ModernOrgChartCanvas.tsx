@@ -88,7 +88,7 @@ const EmployeeNode: React.FC<NodeProps<EmployeeData>> = ({ data }) => {
           <div
             className={`
               flex-shrink-0 w-12 h-12 rounded-full
-              flex items-center justify-center text-white font-bold text-sm
+              flex items-center justify-center text-white font-medium text-sm
               bg-gradient-to-br ${getAvatarColor(data.name)}
               shadow-md
             `}
@@ -106,7 +106,7 @@ const EmployeeNode: React.FC<NodeProps<EmployeeData>> = ({ data }) => {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">
+            <h3 className="font-medium text-gray-900 text-sm leading-tight truncate">
               {data.name}
             </h3>
             <p className="text-xs text-gray-500 mt-0.5 truncate">
@@ -123,7 +123,7 @@ const EmployeeNode: React.FC<NodeProps<EmployeeData>> = ({ data }) => {
 
       {/* Team Size Badge */}
       {data.teamSize && data.teamSize > 0 && (
-        <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md flex items-center gap-1">
+        <div className="absolute -top-2 -right-2 bg-primary-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow-md flex items-center gap-1">
           👥 {data.teamSize}
         </div>
       )}

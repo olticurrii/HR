@@ -109,7 +109,7 @@ const NotificationBell: React.FC = () => {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full min-w-[20px]">
+          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-medium leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full min-w-[20px]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -120,12 +120,12 @@ const NotificationBell: React.FC = () => {
         <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+            <h3 className="text-lg font-medium text-gray-900">Notifications</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 disabled={loading}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                className="text-sm text-primary hover:text-primary-700 font-medium flex items-center"
               >
                 <CheckCheck className="w-4 h-4 mr-1" />
                 Mark all read
@@ -147,7 +147,7 @@ const NotificationBell: React.FC = () => {
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                    !notification.is_read ? 'bg-blue-50' : ''
+                    !notification.is_read ? 'bg-primary-50' : ''
                   }`}
                 >
                   <div className="flex items-start">
@@ -156,7 +156,7 @@ const NotificationBell: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
-                        <p className={`text-sm font-medium text-gray-900 ${!notification.is_read ? 'font-semibold' : ''}`}>
+                        <p className={`text-sm font-medium text-gray-900 ${!notification.is_read ? 'font-medium' : ''}`}>
                           {notification.title}
                         </p>
                         {!notification.is_read && (
@@ -171,7 +171,7 @@ const NotificationBell: React.FC = () => {
                           {getTimeAgo(notification.created_at)}
                         </span>
                         {notification.data && (notification.data.task_id || notification.data.project_id || notification.data.feedback_id || notification.data.chat_id) && (
-                          <span className="text-xs text-blue-600 flex items-center">
+                          <span className="text-xs text-primary flex items-center">
                             View <ExternalLink className="w-3 h-3 ml-1" />
                           </span>
                         )}
@@ -191,7 +191,7 @@ const NotificationBell: React.FC = () => {
                   navigate('/notifications');
                   setIsOpen(false);
                 }}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-primary hover:text-blue-700 font-medium"
               >
                 View all notifications
               </button>

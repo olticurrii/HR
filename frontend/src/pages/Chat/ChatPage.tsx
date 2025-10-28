@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import ChatSidebar from '../../components/Chat/ChatSidebar';
-import ChatRoom from '../../components/Chat/ChatRoom';
+import ChatSidebar from '../../components/chat/ChatSidebar';
+import ChatRoom from '../../components/chat/ChatRoom';
 import { authService } from '../../services/authService';
 import toast from 'react-hot-toast';
 
@@ -47,7 +47,7 @@ const ChatPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-2" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
           <div className="text-gray-500">Loading chat...</div>
         </div>
       </div>

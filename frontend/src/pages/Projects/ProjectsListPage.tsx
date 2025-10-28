@@ -70,8 +70,8 @@ const ProjectsListPage: React.FC = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-            <FolderOpen className="w-8 h-8 mr-3 text-blue-500" />
+          <h1 className="text-2xl font-medium text-gray-800 flex items-center">
+            <FolderOpen className="w-8 h-8 mr-3 text-primary" />
             Projects & Workflows
           </h1>
           <p className="text-gray-600 mt-1">Manage your projects and track progress</p>
@@ -80,7 +80,7 @@ const ProjectsListPage: React.FC = () => {
         {hasPermission('projects', 'create') && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+            className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
           >
             <Plus className="w-5 h-5 mr-2" />
             New Project
@@ -96,7 +96,7 @@ const ProjectsListPage: React.FC = () => {
           {hasPermission('projects', 'create') && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center mx-auto transition-colors"
+              className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center mx-auto transition-colors"
             >
               <Plus className="w-5 h-5 mr-2" />
               Create Project
@@ -112,7 +112,7 @@ const ProjectsListPage: React.FC = () => {
               className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 p-6"
             >
               <div className="flex items-start justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+                <h3 className="text-lg font-medium text-gray-800 line-clamp-2">
                   {project.title}
                 </h3>
                 <div className="flex items-center text-sm text-gray-500">
@@ -160,7 +160,7 @@ const ProjectsListPage: React.FC = () => {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-            <h3 className="text-lg font-semibold mb-4">Create New Project</h3>
+            <h3 className="text-lg font-medium mb-4">Create New Project</h3>
             
             <form onSubmit={handleCreateProject}>
               <div className="mb-4">
@@ -171,7 +171,7 @@ const ProjectsListPage: React.FC = () => {
                   type="text"
                   value={newProject.title}
                   onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Enter project title"
                   required
                 />
@@ -184,7 +184,7 @@ const ProjectsListPage: React.FC = () => {
                 <textarea
                   value={newProject.description}
                   onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Enter project description"
                   rows={3}
                 />
@@ -200,7 +200,7 @@ const ProjectsListPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors"
                 >
                   Create Project
                 </button>

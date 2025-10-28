@@ -52,7 +52,7 @@ export const CompetenciesPanel: React.FC<CompetenciesPanelProps> = ({ userId }) 
     <div className="space-y-6">
       {/* Radar Chart */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">Competency Comparison</h3>
+        <h3 className="text-2xl font-medium text-gray-900 mb-6">Competency Comparison</h3>
         <ResponsiveContainer width="100%" height={400}>
           <RadarChart data={radarData}>
             <PolarGrid stroke="#e5e7eb" />
@@ -100,25 +100,25 @@ export const CompetenciesPanel: React.FC<CompetenciesPanelProps> = ({ userId }) 
       {/* Competency Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-xl font-bold text-gray-900">Detailed Scores</h3>
+          <h3 className="text-xl font-medium text-gray-900">Detailed Scores</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Competency
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Self
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Manager
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Peer
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Average
                 </th>
               </tr>
@@ -136,22 +136,22 @@ export const CompetenciesPanel: React.FC<CompetenciesPanelProps> = ({ userId }) 
                       {comp.competency_name}
                     </td>
                     <td className="px-6 py-4 text-sm text-center">
-                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-800 font-bold">
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-800 font-medium">
                         {comp.self_score?.toFixed(1) || '-'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-center">
-                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-800 font-bold">
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-800 font-medium">
                         {comp.manager_score?.toFixed(1) || '-'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-center">
-                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 text-amber-800 font-bold">
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 text-amber-800 font-medium">
                         {comp.peer_score?.toFixed(1) || '-'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-center">
-                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-800 font-bold text-base">
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-800 font-medium text-base">
                         {average}
                       </span>
                     </td>

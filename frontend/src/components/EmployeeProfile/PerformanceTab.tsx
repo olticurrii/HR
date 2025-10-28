@@ -41,7 +41,7 @@ export const PerformanceTab: React.FC<PerformanceTabProps> = ({ userId }) => {
               onClick={() => setActiveSubTab(tab)}
               className={`px-6 py-4 text-sm font-medium transition-colors relative ${
                 activeSubTab === tab
-                  ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
+                  ? 'text-primary border-b-2 border-blue-600 -mb-px'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >

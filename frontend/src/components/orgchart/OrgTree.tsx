@@ -44,7 +44,7 @@ const CustomNode: React.FC<CustomNodeProps> = ({
     }
     const initial = name.charAt(0).toUpperCase();
     return (
-      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+      <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-medium">
         {initial}
       </div>
     );
@@ -101,8 +101,8 @@ const CustomNode: React.FC<CustomNodeProps> = ({
         
         {/* Drop target indicator */}
         {isDragOver && (
-          <div className="absolute inset-0 bg-blue-50 bg-opacity-50 rounded-lg flex items-center justify-center">
-            <div className="text-xs text-blue-600 font-medium bg-white px-2 py-1 rounded shadow">
+          <div className="absolute inset-0 bg-primary-50 bg-opacity-50 rounded-lg flex items-center justify-center">
+            <div className="text-xs text-primary font-medium bg-white px-2 py-1 rounded shadow">
               Make manager
             </div>
           </div>

@@ -80,7 +80,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
         onClick={onClick}
       >
         {/* Drag Handle - Compact */}
-        <div className="absolute top-1 left-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-blue-500 transition-colors z-10 bg-white rounded p-0.5 shadow-sm">
+        <div className="absolute top-1 left-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-primary transition-colors z-10 bg-white rounded p-0.5 shadow-sm">
           <GripVertical className="w-3 h-3" />
         </div>
 
@@ -99,7 +99,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
 
         {/* Team size badge - Compact */}
         {hasChildren && (
-          <div className="absolute bottom-1 right-1 bg-blue-100 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center">
+          <div className="absolute bottom-1 right-1 bg-blue-100 text-primary text-[10px] px-1.5 py-0.5 rounded-full flex items-center">
             <Users className="w-2.5 h-2.5 mr-0.5" />
             {node.children.length}
           </div>
@@ -107,14 +107,14 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
 
         {/* Main content - Compact */}
         <div className="flex flex-col items-center justify-center p-3">
-          <div className={`w-10 h-10 rounded-full ${deptColor ? `bg-gradient-to-br ${deptColor.gradient}` : 'bg-gradient-to-br from-blue-500 to-purple-600'} flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white overflow-hidden`}>
+          <div className={`w-10 h-10 rounded-full ${deptColor ? `bg-gradient-to-br ${deptColor.gradient}` : 'bg-gradient-to-br from-blue-500 to-purple-600'} flex items-center justify-center text-white text-xs font-medium shadow-md ring-2 ring-white overflow-hidden`}>
             {avatarUrl ? (
               <img src={avatarUrl} alt={node.name} className="w-full h-full object-cover" />
             ) : (
               initials
             )}
           </div>
-          <div className="text-xs font-bold text-gray-900 text-center leading-tight mt-1.5 px-1 truncate w-full">
+          <div className="text-xs font-medium text-gray-900 text-center leading-tight mt-1.5 px-1 truncate w-full">
             {node.name}
           </div>
         </div>
@@ -129,7 +129,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
         employee-card relative w-[220px] rounded-2xl shadow-lg bg-white
         transition-all duration-300 ease-in-out
         ${isDragging ? 'opacity-40 scale-95' : 'hover:shadow-2xl hover:scale-105'}
-        ${isOver ? 'ring-4 ring-blue-400 border-2 border-blue-500' : `border-2 ${deptColor ? deptColor.border : 'border-gray-200'}`}
+        ${isOver ? 'ring-4 ring-blue-400 border-2 border-primary' : `border-2 ${deptColor ? deptColor.border : 'border-gray-200'}`}
         ${deptColor && !isOver ? deptColor.bg : ''}
       `}
       style={{
@@ -140,7 +140,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
       onClick={onClick}
     >
       {/* Drag Handle */}
-      <div className="absolute top-2 left-2 cursor-grab active:cursor-grabbing text-gray-400 hover:text-blue-500 transition-colors z-10 bg-white rounded p-1 shadow-sm border border-gray-200">
+      <div className="absolute top-2 left-2 cursor-grab active:cursor-grabbing text-gray-400 hover:text-primary transition-colors z-10 bg-white rounded p-1 shadow-sm border border-gray-200">
         <GripVertical className="w-4 h-4" />
       </div>
 
@@ -166,7 +166,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
 
       {/* Team size badge */}
       {hasChildren && (
-        <div className="absolute bottom-2 right-2 bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full flex items-center">
+        <div className="absolute bottom-2 right-2 bg-blue-100 text-primary text-xs px-2 py-0.5 rounded-full flex items-center">
           <Users className="w-3 h-3 mr-1" />
           {node.children.length}
         </div>
@@ -175,7 +175,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
       {/* Main content */}
       <div className="flex flex-col items-center justify-center p-5 pt-6 pb-8">
         {/* Avatar */}
-        <div className={`w-14 h-14 rounded-full ${deptColor ? `bg-gradient-to-br ${deptColor.gradient}` : 'bg-gradient-to-br from-blue-500 to-purple-600'} flex items-center justify-center text-white text-base font-bold mb-3 shadow-lg ring-2 ring-white overflow-hidden`}>
+        <div className={`w-14 h-14 rounded-full ${deptColor ? `bg-gradient-to-br ${deptColor.gradient}` : 'bg-gradient-to-br from-blue-500 to-purple-600'} flex items-center justify-center text-white text-base font-medium mb-3 shadow-lg ring-2 ring-white overflow-hidden`}>
           {avatarUrl ? (
             <img
               src={avatarUrl}
@@ -188,7 +188,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
         </div>
 
         {/* Name */}
-        <div className="text-sm font-bold text-gray-900 text-center leading-tight mb-1 px-2">
+        <div className="text-sm font-medium text-gray-900 text-center leading-tight mb-1 px-2">
           {node.name}
         </div>
 
@@ -208,7 +208,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
       {/* Drop indicator */}
       {isOver && (
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 bg-opacity-90 rounded-2xl flex items-center justify-center pointer-events-none backdrop-blur-sm">
-          <div className="text-xs text-blue-700 font-bold bg-white px-4 py-2 rounded-full shadow-lg border-2 border-blue-400">
+          <div className="text-xs text-blue-700 font-medium bg-white px-4 py-2 rounded-full shadow-lg border-2 border-blue-400">
             Drop here to reassign
           </div>
         </div>
@@ -251,7 +251,7 @@ const UnassignedEmployeeCard: React.FC<{ employee: OrgChartNode }> = ({ employee
       `}
     >
       <div className="flex items-center space-x-2">
-        <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs font-medium flex-shrink-0 overflow-hidden">
           {avatarUrl ? (
             <img
               src={avatarUrl}
@@ -263,7 +263,7 @@ const UnassignedEmployeeCard: React.FC<{ employee: OrgChartNode }> = ({ employee
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-semibold text-gray-900 truncate">
+          <div className="text-xs font-medium text-gray-900 truncate">
             {employee.name}
           </div>
           <div className="text-[10px] text-gray-600 truncate">
@@ -299,7 +299,7 @@ const UnassignedPanel: React.FC<UnassignedPanelProps> = ({ unassignedEmployees }
         transition-all duration-200
         ${isOver ? 'bg-yellow-200' : ''}
       `}>
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center">
+        <h3 className="text-sm font-medium text-gray-900 flex items-center">
           <Users className="w-4 h-4 mr-2 text-yellow-600" />
           Unassigned ({unassignedEmployees.length})
         </h3>

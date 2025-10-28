@@ -148,7 +148,7 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose }) =>
                       onClick={() => handleSelect(result)}
                       className={`px-4 py-3 cursor-pointer transition-colors ${
                         index === selectedIndex
-                          ? 'bg-blue-50 border-l-4 border-blue-500'
+                          ? 'bg-primary-50 border-l-4 border-primary'
                           : 'hover:bg-gray-50 border-l-4 border-transparent'
                       }`}
                     >

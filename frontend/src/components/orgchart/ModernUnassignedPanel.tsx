@@ -55,7 +55,7 @@ const ModernUnassignedPanel: React.FC<ModernUnassignedPanelProps> = ({
       className={`
         h-full flex flex-col
         transition-all duration-300
-        ${isOver ? 'bg-blue-50' : 'bg-gradient-to-b from-gray-50 to-white'}
+        ${isOver ? 'bg-primary-50' : 'bg-gradient-to-b from-gray-50 to-white'}
       `}
       style={{
         borderLeft: isOver ? '3px solid #5B8EF1' : '1px solid rgba(0, 0, 0, 0.05)',
@@ -66,7 +66,7 @@ const ModernUnassignedPanel: React.FC<ModernUnassignedPanelProps> = ({
         className={`
           sticky top-0 z-10 px-6 py-4 border-b
           transition-all duration-300
-          ${isOver ? 'bg-blue-100 border-blue-200' : 'bg-white border-gray-100'}
+          ${isOver ? 'bg-blue-100 border-primary-200' : 'bg-white border-gray-100'}
         `}
       >
         <div className="flex items-center justify-between">
@@ -75,10 +75,10 @@ const ModernUnassignedPanel: React.FC<ModernUnassignedPanelProps> = ({
               p-2 rounded-xl transition-colors
               ${isOver ? 'bg-blue-200' : 'bg-gray-100'}
             `}>
-              <Users className={`w-5 h-5 ${isOver ? 'text-blue-600' : 'text-gray-600'}`} />
+              <Users className={`w-5 h-5 ${isOver ? 'text-primary' : 'text-gray-600'}`} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-sm">
+              <h3 className="font-medium text-gray-900 text-sm">
                 Unassigned
               </h3>
               <p className="text-xs text-gray-500">
@@ -167,7 +167,7 @@ const DraggableUnassignedCard: React.FC<{
       className={`
         relative p-3 rounded-xl cursor-grab active:cursor-grabbing
         bg-white border border-gray-100
-        hover:border-blue-200 hover:shadow-md
+        hover:border-primary-200 hover:shadow-md
         transition-all duration-200
         ${isDragging ? 'opacity-50' : ''}
       `}
@@ -180,7 +180,7 @@ const DraggableUnassignedCard: React.FC<{
         <div
           className={`
             flex-shrink-0 w-10 h-10 rounded-full
-            flex items-center justify-center text-white font-bold text-xs
+            flex items-center justify-center text-white font-medium text-xs
             bg-gradient-to-br ${getAvatarColor(employee.name)}
             shadow-sm
           `}

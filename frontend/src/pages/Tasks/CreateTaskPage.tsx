@@ -102,7 +102,7 @@ const CreateTaskPage: React.FC = () => {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Create New Task</h1>
+            <h1 className="text-2xl font-medium text-gray-800">Create New Task</h1>
             <p className="text-gray-600 mt-1">
               {formData.project_id ? 'Add a task to this project' : 'Create a standalone task'}
             </p>
@@ -122,7 +122,7 @@ const CreateTaskPage: React.FC = () => {
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Enter task title"
               required
             />
@@ -136,7 +136,7 @@ const CreateTaskPage: React.FC = () => {
             <textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Enter task description"
               rows={4}
             />
@@ -151,7 +151,7 @@ const CreateTaskPage: React.FC = () => {
               <select
                 value={formData.priority}
                 onChange={(e) => handleInputChange('priority', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -168,7 +168,7 @@ const CreateTaskPage: React.FC = () => {
               <select
                 value={formData.assignee_id || ''}
                 onChange={(e) => handleInputChange('assignee_id', e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select assignee</option>
                 {users.map((user) => (
@@ -189,7 +189,7 @@ const CreateTaskPage: React.FC = () => {
               <select
                 value={formData.project_id || ''}
                 onChange={(e) => handleInputChange('project_id', e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Standalone task (no project)</option>
                 {projects.map((project) => (
@@ -212,7 +212,7 @@ const CreateTaskPage: React.FC = () => {
                 type="date"
                 value={formData.due_date}
                 onChange={(e) => handleInputChange('due_date', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -224,7 +224,7 @@ const CreateTaskPage: React.FC = () => {
               id="is_private"
               checked={formData.is_private}
               onChange={(e) => handleInputChange('is_private', e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
             />
             <label htmlFor="is_private" className="ml-2 block text-sm text-gray-700">
               Private task (only visible to assignee and creator)
@@ -243,7 +243,7 @@ const CreateTaskPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded-lg flex items-center transition-colors"
+              className="bg-primary hover:bg-primary-700 disabled:bg-blue-300 text-white px-6 py-2 rounded-lg flex items-center transition-colors"
             >
               <Save className="w-5 h-5 mr-2" />
               {loading ? 'Creating...' : 'Create Task'}

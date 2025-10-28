@@ -10,7 +10,6 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=True)  # Made nullable for Streamlit compatibility
     full_name = Column(String, unique=True, nullable=False)  # Made unique for Streamlit compatibility
     hashed_password = Column(String, nullable=False)
-    salt = Column(String, nullable=False)  # Added for Streamlit compatibility
     
     # Role and permissions (unified)
     role = Column(String, default="employee", nullable=False)  # "admin", "manager", "employee"
@@ -32,7 +31,6 @@ class User(Base):
     email_notifications = Column(Boolean, default=True)
     
     # Timestamps
-    last_seen_at = Column(DateTime, nullable=True)  # Added for Streamlit compatibility
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     

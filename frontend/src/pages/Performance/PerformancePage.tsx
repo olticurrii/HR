@@ -1,77 +1,162 @@
-import React, { useState, useEffect } from 'react';
-import { Target, Plus, TrendingUp, Award, FileText, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { performanceService } from '../../services/performanceService';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { Target, Plus, TrendingUp, AlertCircle, BarChart3 } from 'lucide-react';
+import { useQuery } from 'react-query';
+import { performanceService, Goal } from '../../services/performanceService';
 import { usePerformanceSettings } from '../../hooks/usePerformanceSettings';
+import { useAuth } from '../../contexts/AuthContext';
+import toast from 'react-hot-toast';
+
+// Import our new redesigned components
+import PerformanceStats from '../../components/Performance/PerformanceStats';
+import PerformanceTabs from '../../components/Performance/PerformanceTabs';
+import GoalsList from '../../components/Performance/GoalsList';
+import FiltersBar from '../../components/Performance/FiltersBar';
+import KPITrends from '../../components/Performance/KPITrends';
+import MonthlyReportView from '../../components/Performance/MonthlyReportView';
+
+// Import existing modals (we'll keep the existing ones for now)
 import GoalCreationModal from '../../components/Performance/GoalCreationModal';
 import GoalProgressUpdater from '../../components/Performance/GoalProgressUpdater';
 import KpiRecordModalEnhanced from '../../components/Performance/KpiRecordModalEnhanced';
-import KpiTrendChart from '../../components/Performance/KpiTrendChart';
-import AutoCalculatedKpis from '../../components/Performance/AutoCalculatedKpis';
 import TopPerformerBadge from '../../components/Performance/TopPerformerBadge';
-import MonthlyReportView from '../../components/Performance/MonthlyReportView';
-import { authService } from '../../services/authService';
+
+interface FilterState {
+  search: string;
+  status: 'all' | 'active' | 'completed' | 'pending' | 'overdue';
+  sortBy: 'created_at' | 'due_date' | 'progress' | 'title';
+  sortOrder: 'asc' | 'desc';
+}
 
 const PerformancePage: React.FC = () => {
+  const { user } = useAuth();
   const perfSettings = usePerformanceSettings();
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [goals, setGoals] = useState<any[]>([]);
-  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'my-goals' | 'pending-approvals' | 'kpi-trends' | 'monthly-reports'>('my-goals');
   const [showGoalModal, setShowGoalModal] = useState(false);
-  const [showKpiModal, setShowKpiModal] = useState(false);
-  const [kpiRefreshKey, setKpiRefreshKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<'my-goals' | 'approvals' | 'kpi' | 'reports'>('my-goals');
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    status: 'all',
+    sortBy: 'created_at',
+    sortOrder: 'desc'
+  });
 
-  useEffect(() => {
-    loadCurrentUser();
-  }, []);
-
-  useEffect(() => {
-    if (currentUser) {
-      loadGoals();
-      loadPendingApprovals();
+  // Fetch goals with React Query
+  const {
+    data: goals = [],
+    isLoading: goalsLoading,
+    error: goalsError,
+    refetch: refetchGoals
+  } = useQuery(
+    'performance-goals',
+    () => performanceService.getGoals(),
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      onError: (error) => {
+        console.error('Error loading goals:', error);
+        toast.error('Failed to load goals');
+      }
     }
-  }, [currentUser]);
+  );
 
-  const loadCurrentUser = async () => {
-    try {
-      const user = await authService.getCurrentUser();
-      setCurrentUser(user);
-    } catch (err) {
-      console.error('Failed to load user:', err);
+  // Fetch pending approvals
+  const {
+    data: pendingApprovals = [],
+    refetch: refetchApprovals
+  } = useQuery(
+    'performance-approvals',
+    performanceService.getPendingApprovals,
+    {
+      enabled: user?.role === 'admin' || user?.role === 'manager' || user?.is_admin,
+      refetchOnWindowFocus: false,
+      staleTime: 2 * 60 * 1000, // 2 minutes
+      onError: (error) => {
+        console.error('Error loading pending approvals:', error);
+      }
     }
-  };
+  );
 
-  const loadGoals = async () => {
-    try {
-      setLoading(true);
-      const data = await performanceService.getGoals();
-      setGoals(data);
-    } catch (err) {
-      console.error('Failed to load goals:', err);
-      setError('Failed to load goals');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Filter and sort goals
+  const filteredGoals = useMemo(() => {
+    let filtered = [...goals];
 
-  const loadPendingApprovals = async () => {
-    try {
-      const data = await performanceService.getPendingApprovals();
-      setPendingApprovals(data);
-    } catch (err) {
-      console.error('Failed to load pending approvals:', err);
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(goal => 
+        goal.title.toLowerCase().includes(searchLower) ||
+        goal.description?.toLowerCase().includes(searchLower)
+      );
     }
-  };
+
+    // Status filter
+    if (filters.status !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(goal => {
+        switch (filters.status) {
+          case 'active':
+            return goal.status === 'active' && goal.approval_status === 'approved';
+          case 'completed':
+            return goal.status === 'closed' || goal.progress >= 100;
+          case 'pending':
+            return goal.approval_status === 'pending';
+          case 'overdue':
+            return goal.due_date && new Date(goal.due_date) < now && goal.status !== 'closed';
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Sort goals
+    filtered.sort((a, b) => {
+      let aValue: any = a[filters.sortBy as keyof Goal];
+      let bValue: any = b[filters.sortBy as keyof Goal];
+
+      if (filters.sortBy === 'due_date' || filters.sortBy === 'created_at') {
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
+      } else if (filters.sortBy === 'progress') {
+        aValue = a.progress || 0;
+        bValue = b.progress || 0;
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue?.toLowerCase() || '';
+      }
+
+      if (filters.sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  }, [goals, filters]);
+
+  // Performance statistics
+  const performanceStats = useMemo(() => {
+    const total = goals.length;
+    const completed = goals.filter(g => g.status === 'closed' || g.progress >= 100).length;
+    const averageProgress = total > 0 ? Math.round(goals.reduce((sum, g) => sum + g.progress, 0) / total) : 0;
+    const pending = pendingApprovals.length;
+
+    return {
+      totalGoals: total,
+      completedGoals: completed,
+      averageProgress,
+      pendingApprovals: pending
+    };
+  }, [goals, pendingApprovals]);
 
   const handleApprove = async (goalId: number) => {
     try {
       await performanceService.approveGoal(goalId);
-      await loadPendingApprovals();
-      await loadGoals();
+      toast.success('Goal approved successfully');
+      refetchApprovals();
+      refetchGoals();
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Failed to approve goal');
+      toast.error(err.response?.data?.detail || 'Failed to approve goal');
     }
   };
 
@@ -81,306 +166,555 @@ const PerformancePage: React.FC = () => {
 
     try {
       await performanceService.rejectGoal(goalId, reason);
-      await loadPendingApprovals();
-      await loadGoals();
+      toast.success('Goal rejected');
+      refetchApprovals();
+      refetchGoals();
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Failed to reject goal');
+      toast.error(err.response?.data?.detail || 'Failed to reject goal');
     }
   };
 
-  const getStatusBadge = (goal: any) => {
-    const statusColors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      approved: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-700',
-      active: 'bg-blue-100 text-blue-700',
-      closed: 'bg-gray-100 text-gray-700',
-      archived: 'bg-gray-50 text-gray-500',
-    };
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      status: 'all',
+      sortBy: 'created_at',
+      sortOrder: 'desc'
+    });
+  };
 
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[goal.approval_status] || statusColors[goal.status] || 'bg-gray-100 text-gray-700'}`}>
-        {goal.approval_status !== 'approved' ? goal.approval_status : goal.status}
-      </span>
-    );
+  const handleGoalUpdate = (goal: Goal) => {
+    // Handle goal update - could navigate to edit page or open modal
+    console.log('Update goal:', goal);
   };
 
   if (perfSettings.loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div style={{
+          backgroundColor: '#E5E7EB',
+          height: '192px',
+          borderRadius: '24px',
+          marginBottom: '32px',
+          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        }} />
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '24px',
+        }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              style={{
+                backgroundColor: '#E5E7EB',
+                height: '128px',
+                borderRadius: '16px',
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (!perfSettings.isModuleEnabled) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <AlertCircle className="w-12 h-12 mx-auto mb-3 text-yellow-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Performance Module Disabled</h2>
-          <p className="text-gray-600 mt-2">
-            The performance module is currently disabled by your administrator.
-          </p>
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        style={{
+          backgroundColor: '#FEF3C7',
+          border: '1px solid #FDE68A',
+          borderRadius: '16px',
+          padding: '32px',
+          textAlign: 'center',
+        }}
+      >
+        <AlertCircle style={{
+          width: '64px',
+          height: '64px',
+          margin: '0 auto 16px',
+          color: '#F59E0B',
+        }} />
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: '500',
+          color: '#111827',
+          marginBottom: '8px',
+          fontFamily: "'Outfit', sans-serif",
+        }}>
+          Performance Module Disabled
+        </h2>
+        <p style={{
+          color: '#6B7280',
+          fontFamily: "'Outfit', sans-serif",
+        }}>
+          The performance module is currently disabled by your administrator.
+        </p>
+      </motion.div>
     );
   }
 
-  if (!currentUser) {
+  if (!user) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '256px',
+      }}>
+        <div
+          style={{
+            width: '48px',
+            height: '48px',
+            border: '3px solid #E5E7EB',
+            borderTopColor: '#2563EB',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <TrendingUp className="w-8 h-8 mr-3 text-blue-600" />
-              Performance Management
-            </h1>
-            <p className="text-gray-600 mt-1">Track goals, KPIs, and performance metrics</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <TopPerformerBadge userId={currentUser.id} size="md" />
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex gap-6">
-          <button
-            onClick={() => setActiveTab('my-goals')}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'my-goals'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Target className="w-4 h-4 inline mr-2" />
-            My Goals
-          </button>
-          
-          {(currentUser.is_admin || currentUser.role === 'admin' || currentUser.role === 'manager') && (
-            <button
-              onClick={() => setActiveTab('approvals')}
-              className={`py-3 px-1 border-b-2 font-medium text-sm relative ${
-                activeTab === 'approvals'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Clock className="w-4 h-4 inline mr-2" />
-              Pending Approvals
-              {pendingApprovals.length > 0 && (
-                <span className="ml-2 bg-yellow-500 text-white text-xs rounded-full px-2 py-0.5">
-                  {pendingApprovals.length}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        style={{
+          background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
+          borderRadius: '24px',
+          padding: '32px',
+          color: '#FFFFFF',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Background Pattern */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '-40px',
+          right: '-40px',
+          width: '160px',
+          height: '160px',
+          backgroundColor: 'rgba(255,255,255,0.05)',
+          borderRadius: '50%',
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-24px',
+          left: '-24px',
+          width: '128px',
+          height: '128px',
+          backgroundColor: 'rgba(255,255,255,0.05)',
+          borderRadius: '50%',
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+          }}>
+            <div style={{ marginBottom: '24px' }}>
+              <h1 style={{
+                fontSize: '36px',
+                fontWeight: '500',
+                marginBottom: '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                fontFamily: "'Outfit', sans-serif",
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  <TrendingUp style={{ width: '32px', height: '32px', marginRight: '12px' }} />
+                  Performance Management
                 </span>
-              )}
-            </button>
-          )}
+                <span style={{
+                  borderBottom: '3px solid #F97316',
+                  width: '60px',
+                  marginTop: '8px',
+                  borderRadius: '2px',
+                }} />
+              </h1>
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '18px',
+                fontWeight: '400',
+                fontFamily: "'Outfit', sans-serif",
+              }}>
+                Track goals, KPIs, and performance metrics
+              </p>
+            </div>
 
-          {perfSettings.showKpiTrends && (
-            <button
-              onClick={() => setActiveTab('kpi')}
-              className={`py-3 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'kpi'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4 inline mr-2" />
-              KPI Trends
-            </button>
-          )}
-
-          {perfSettings.monthlyReports && (currentUser.is_admin || currentUser.role === 'admin') && (
-            <button
-              onClick={() => setActiveTab('reports')}
-              className={`py-3 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'reports'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <FileText className="w-4 h-4 inline mr-2" />
-              Monthly Reports
-            </button>
-          )}
-        </nav>
-      </div>
-
-      {/* Content */}
-      <div>
-        {/* My Goals Tab */}
-        {activeTab === 'my-goals' && (
-          <div>
-            {/* Header with Create Button */}
-            {perfSettings.allowSelfGoals && (
-              <div className="flex justify-end mb-4">
-                <button
-                  onClick={() => setShowGoalModal(true)}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New Goal
-                </button>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}>
+              {/* Quick Stats */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '16px',
+                textAlign: 'center',
+              }}>
+                <div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '500',
+                    color: '#FFFFFF',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    {performanceStats.totalGoals}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    Total Goals
+                  </div>
+                </div>
+                <div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '500',
+                    color: '#FFFFFF',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    {performanceStats.completedGoals}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    Completed
+                  </div>
+                </div>
+                <div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '500',
+                    color: '#FFFFFF',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    {performanceStats.averageProgress}%
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    Avg Progress
+                  </div>
+                </div>
+                <div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '500',
+                    color: '#FFFFFF',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    {performanceStats.pendingApprovals}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}>
+                    Pending
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Goals List */}
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            ) : goals.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <Target className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-600 text-lg font-medium">No goals yet</p>
+              {/* Top Performer Badge & Action */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-end' }}>
+                <TopPerformerBadge userId={user.id} size="md" />
                 {perfSettings.allowSelfGoals && (
-                  <p className="text-gray-500 text-sm mt-2">Create your first performance goal to get started</p>
+                  <button
+                    onClick={() => setShowGoalModal(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '12px 24px',
+                      backgroundColor: '#F97316',
+                      color: '#FFFFFF',
+                      fontWeight: '500',
+                      borderRadius: '12px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      fontFamily: "'Outfit', sans-serif",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#EA580C';
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#F97316';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                    }}
+                  >
+                    <Plus style={{ width: '20px', height: '20px', marginRight: '8px' }} />
+                    New Goal
+                  </button>
                 )}
               </div>
-            ) : (
-              <div className="grid gap-4">
-                {goals.map((goal) => (
-                  <div key={goal.id} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{goal.title}</h3>
-                          {getStatusBadge(goal)}
-                        </div>
-                        {goal.description && (
-                          <p className="text-gray-600 text-sm mt-2">{goal.description}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Progress Updater */}
-                    <div className="mb-3">
-                      {goal.approval_status === 'approved' && goal.status === 'active' ? (
-                        <GoalProgressUpdater
-                          goalId={goal.id}
-                          currentProgress={goal.progress || 0}
-                          onProgressUpdated={loadGoals}
-                        />
-                      ) : (
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-700 font-medium">Progress</span>
-                            <span className="text-gray-900 font-semibold">{goal.progress.toFixed(0)}%</span>
-                          </div>
-                          <div className="bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all"
-                              style={{ width: `${Math.min(goal.progress, 100)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Meta Info */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      {goal.due_date && (
-                        <span className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          Due: {new Date(goal.due_date).toLocaleDateString()}
-                        </span>
-                      )}
-                      <span>
-                        Created: {new Date(goal.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    {/* Approval Info */}
-                    {goal.approval_status === 'pending' && (
-                      <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded px-3 py-2">
-                        <p className="text-sm text-yellow-800">
-                          <Clock className="w-4 h-4 inline mr-1" />
-                          Waiting for manager approval
-                        </p>
-                      </div>
-                    )}
-
-                    {goal.approval_status === 'rejected' && goal.rejection_reason && (
-                      <div className="mt-3 bg-red-50 border border-red-200 rounded px-3 py-2">
-                        <p className="text-sm text-red-800 font-medium">
-                          <XCircle className="w-4 h-4 inline mr-1" />
-                          Rejected
-                        </p>
-                        <p className="text-sm text-red-700 mt-1">{goal.rejection_reason}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Performance Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <PerformanceStats stats={performanceStats} loading={goalsLoading} />
+      </motion.div>
+
+      {/* Tabs */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <PerformanceTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          pendingCount={pendingApprovals.length}
+          showApprovals={user?.role === 'admin' || user?.role === 'manager' || user?.is_admin}
+          showKpiTrends={perfSettings.showKpiTrends}
+          showReports={perfSettings.monthlyReports && (user?.is_admin || user?.role === 'admin')}
+        />
+      </motion.div>
+
+      {/* Filters - Only show for My Goals tab */}
+      {activeTab === 'my-goals' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <FiltersBar
+            searchQuery={filters.search}
+            onSearchChange={(search: string) => setFilters(prev => ({ ...prev, search }))}
+            statusFilter={filters.status}
+            onStatusFilterChange={(status: 'all' | 'active' | 'completed' | 'pending' | 'overdue') => setFilters(prev => ({ ...prev, status }))}
+            sortBy={filters.sortBy}
+            onSortByChange={(sortBy: 'created_at' | 'due_date' | 'progress' | 'title') => setFilters(prev => ({ ...prev, sortBy }))}
+            sortOrder={filters.sortOrder}
+            onSortOrderChange={(sortOrder: 'asc' | 'desc') => setFilters(prev => ({ ...prev, sortOrder }))}
+            onClearFilters={clearFilters}
+            resultCount={filteredGoals.length}
+            totalCount={goals.length}
+          />
+        </motion.div>
+      )}
+
+      {/* Results Summary */}
+      {activeTab === 'my-goals' && filteredGoals.length !== goals.length && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#DBEAFE',
+            border: '1px solid #BFDBFE',
+            borderRadius: '12px',
+            padding: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BarChart3 style={{ width: '20px', height: '20px', color: '#2563EB' }} />
+            <span style={{
+              color: '#1E40AF',
+              fontWeight: '500',
+              fontSize: '14px',
+              fontFamily: "'Outfit', sans-serif",
+            }}>
+              Showing {filteredGoals.length} of {goals.length} goals
+            </span>
+          </div>
+          <button
+            onClick={clearFilters}
+            style={{
+              color: '#2563EB',
+              fontSize: '14px',
+              fontWeight: '500',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontFamily: "'Outfit', sans-serif",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#1D4ED8'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#2563EB'}
+          >
+            Clear filters to see all
+          </button>
+        </motion.div>
+      )}
+
+      {/* Content */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        {/* My Goals Tab */}
+        {activeTab === 'my-goals' && (
+          <GoalsList
+            goals={filteredGoals}
+            loading={goalsLoading}
+            onGoalUpdated={() => refetchGoals()}
+            emptyStateTitle={
+              filters.search || filters.status !== 'all'
+                ? "No goals match your filters"
+                : "No goals yet"
+            }
+            emptyStateDescription={
+              filters.search || filters.status !== 'all'
+                ? "Try adjusting your search criteria or filters to find more goals."
+                : "Create your first performance goal to start tracking progress."
+            }
+            showCreateButton={perfSettings.allowSelfGoals && !(filters.search || filters.status !== 'all')}
+            onCreateNewGoal={() => setShowGoalModal(true)}
+          />
         )}
 
         {/* Pending Approvals Tab */}
-        {activeTab === 'approvals' && (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Goals Pending Approval</h2>
-            {pendingApprovals.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-600">No pending approvals</p>
-              </div>
-            ) : (
-              <div className="grid gap-4">
+        {activeTab === 'pending-approvals' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '500',
+              color: '#111827',
+              fontFamily: "'Outfit', sans-serif",
+            }}>
+              Goals Pending Approval
+            </h2>
+            <GoalsList
+              goals={pendingApprovals}
+              loading={false}
+              emptyStateTitle="No pending approvals"
+              emptyStateDescription="All goals have been reviewed. New submissions will appear here."
+              showCreateButton={false}
+            />
+            
+            {/* Approval Actions for Pending Goals */}
+            {pendingApprovals.length > 0 && (
+              <div style={{ display: 'grid', gap: '24px' }}>
                 {pendingApprovals.map((goal) => (
-                  <div key={goal.id} className="bg-white border border-yellow-200 rounded-lg p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{goal.title}</h3>
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
-                            Pending
-                          </span>
-                        </div>
-                        {goal.description && (
-                          <p className="text-gray-600 text-sm mt-2">{goal.description}</p>
-                        )}
-                      </div>
+                  <motion.div
+                    key={`approval-${goal.id}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      backgroundColor: '#FEF3C7',
+                      border: '1px solid #FDE68A',
+                      borderRadius: '16px',
+                      padding: '24px',
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '16px',
+                    }}>
+                      <h3 style={{
+                        fontWeight: '500',
+                        color: '#111827',
+                        fontFamily: "'Outfit', sans-serif",
+                      }}>
+                        {goal.title}
+                      </h3>
+                      <span style={{
+                        padding: '4px 12px',
+                        backgroundColor: '#FBBF24',
+                        color: '#92400E',
+                        borderRadius: '9999px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        fontFamily: "'Outfit', sans-serif",
+                      }}>
+                        Pending Review
+                      </span>
                     </div>
 
-                    {/* Goal Owner Info */}
-                    <div className="text-sm text-gray-600 mb-3">
-                      Created by employee on {new Date(goal.created_at).toLocaleDateString()}
-                    </div>
-
-                    {/* Approval Actions */}
-                    <div className="flex gap-3 pt-3 border-t border-gray-200">
-                      <button
+                    <p style={{
+                      color: '#6B7280',
+                      fontSize: '14px',
+                      marginBottom: '16px',
+                      fontFamily: "'Outfit', sans-serif",
+                    }}>
+                      Created on {new Date(goal.created_at).toLocaleDateString()}
+                    </p>
+                    
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => handleApprove(goal.id)}
-                        className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '8px 16px',
+                          backgroundColor: '#10B981',
+                          color: '#FFFFFF',
+                          borderRadius: '12px',
+                          fontWeight: '500',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontFamily: "'Outfit', sans-serif",
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10B981'}
                       >
-                        <CheckCircle className="w-4 h-4 mr-2" />
+                        <Target style={{ width: '16px', height: '16px', marginRight: '8px' }} />
                         Approve
-                      </button>
-                      <button
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => handleReject(goal.id)}
-                        className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '8px 16px',
+                          backgroundColor: '#EF4444',
+                          color: '#FFFFFF',
+                          borderRadius: '12px',
+                          fontWeight: '500',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontFamily: "'Outfit', sans-serif",
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#DC2626'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#EF4444'}
                       >
-                        <XCircle className="w-4 h-4 mr-2" />
+                        <AlertCircle style={{ width: '16px', height: '16px', marginRight: '8px' }} />
                         Reject
-                      </button>
+                      </motion.button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -388,45 +722,15 @@ const PerformancePage: React.FC = () => {
         )}
 
         {/* KPI Trends Tab */}
-        {activeTab === 'kpi' && perfSettings.showKpiTrends && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">KPI Tracking</h2>
-              <button
-                onClick={() => setShowKpiModal(true)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Record Custom KPI
-              </button>
-            </div>
-
-            {/* Auto-Calculated KPIs Section */}
-            <div className="mb-8">
-              <AutoCalculatedKpis
-                userId={currentUser.id}
-                onRecordKpi={() => setKpiRefreshKey(prev => prev + 1)}
-              />
-            </div>
-
-            {/* Historical Trends Section */}
-            <div className="mt-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Historical Trends</h3>
-                <p className="text-sm text-gray-600">Track your KPIs over time</p>
-              </div>
-              <KpiTrendChart key={kpiRefreshKey} userId={currentUser.id} days={90} />
-            </div>
-          </div>
+        {activeTab === 'kpi-trends' && perfSettings.showKpiTrends && (
+          <KPITrends userId={user.id} days={90} />
         )}
 
         {/* Monthly Reports Tab */}
-        {activeTab === 'reports' && perfSettings.monthlyReports && (
-          <div>
-            <MonthlyReportView />
-          </div>
+        {activeTab === 'monthly-reports' && perfSettings.monthlyReports && (
+          <MonthlyReportView />
         )}
-      </div>
+      </motion.div>
 
       {/* Goal Creation Modal */}
       {perfSettings.allowSelfGoals && (
@@ -434,28 +738,18 @@ const PerformancePage: React.FC = () => {
           isOpen={showGoalModal}
           onClose={() => setShowGoalModal(false)}
           onGoalCreated={() => {
-            loadGoals();
-            loadPendingApprovals();
+            refetchGoals();
+            refetchApprovals();
+            toast.success('Goal created successfully!');
           }}
-          userId={currentUser.id}
+          userId={user.id}
           requireApproval={perfSettings.requireGoalApproval}
         />
       )}
 
-      {/* KPI Recording Modal */}
-      {perfSettings.showKpiTrends && (
-        <KpiRecordModalEnhanced
-          isOpen={showKpiModal}
-          onClose={() => setShowKpiModal(false)}
-          onKpiRecorded={() => {
-            setKpiRefreshKey(prev => prev + 1); // Force refresh of chart
-          }}
-          userId={currentUser.id}
-        />
-      )}
+      {/* KPI system is now fully automated - no manual recording modal needed */}
     </div>
   );
 };
 
 export default PerformancePage;
-

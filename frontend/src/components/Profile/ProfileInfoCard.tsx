@@ -72,7 +72,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
+      <h2 className="text-xl font-medium mb-6">Profile Information</h2>
 
       {/* Avatar Section */}
       <div className="flex flex-col items-center mb-6">

@@ -123,7 +123,7 @@ const AdminTimeTrackingPage: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900">Access Denied</h2>
+          <h2 className="text-xl font-medium text-gray-900">Access Denied</h2>
           <p className="text-gray-600">Admin privileges required to view this page.</p>
         </div>
       </div>
@@ -142,7 +142,7 @@ const AdminTimeTrackingPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-2xl font-medium text-gray-900 flex items-center">
             <Clock className="w-6 h-6 mr-2" />
             Admin Time Tracking Dashboard
           </h1>
@@ -170,7 +170,7 @@ const AdminTimeTrackingPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600">Active Users</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">{activeUsers.length}</p>
+              <p className="text-3xl font-medium text-green-600 mt-2">{activeUsers.length}</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
               <Users className="w-6 h-6 text-green-600" />
@@ -182,7 +182,7 @@ const AdminTimeTrackingPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600">Not Clocked In</p>
-              <p className="text-3xl font-bold text-red-600 mt-2">{notClockedInUsers.length}</p>
+              <p className="text-3xl font-medium text-red-600 mt-2">{notClockedInUsers.length}</p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
               <Clock className="w-6 h-6 text-red-600" />
@@ -190,16 +190,16 @@ const AdminTimeTrackingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-lg shadow p-6">
+        <div className="bg-primary-50 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600">On Break</p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">
+              <p className="text-3xl font-medium text-primary mt-2">
                 {activeUsers.filter(u => u.is_on_break).length}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Clock className="w-6 h-6 text-blue-600" />
+              <Clock className="w-6 h-6 text-primary" />
             </div>
           </div>
         </div>
@@ -208,7 +208,7 @@ const AdminTimeTrackingPage: React.FC = () => {
       {/* All Users with Status */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">All Users - Activity & Location</h2>
+          <h2 className="text-xl font-medium">All Users - Activity & Location</h2>
           <p className="text-sm text-gray-600 mt-1">View all employees with their current status and location</p>
         </div>
         <div className="overflow-x-auto">
@@ -297,7 +297,7 @@ const AdminTimeTrackingPage: React.FC = () => {
       {/* Active Users */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">Currently Active Users</h2>
+          <h2 className="text-xl font-medium">Currently Active Users</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -380,7 +380,7 @@ const AdminTimeTrackingPage: React.FC = () => {
       {notClockedInUsers.length > 0 && (
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold">Not Clocked In Today</h2>
+            <h2 className="text-xl font-medium">Not Clocked In Today</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -416,10 +416,10 @@ const AdminTimeTrackingPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Time Records</h2>
+            <h2 className="text-xl font-medium">Time Records</h2>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center text-blue-600 hover:text-blue-700"
+              className="flex items-center text-primary hover:text-blue-700"
             >
               <Filter className="w-4 h-4 mr-2" />
               {showFilters ? 'Hide Filters' : 'Show Filters'}
@@ -439,7 +439,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                 />
               </div>
               <div>
@@ -450,7 +450,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                 />
               </div>
               <div>
@@ -463,7 +463,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                     const value = e.target.value;
                     setTerrainFilter(value === 'all' ? undefined : value === 'terrain');
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                 >
                   <option value="all">All</option>
                   <option value="office">Office</option>

@@ -133,7 +133,7 @@ const PermissionsPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Loading permissions...</p>
         </div>
       </div>
@@ -146,8 +146,8 @@ const PermissionsPage: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Shield className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-medium text-gray-900 flex items-center gap-3">
+              <Shield className="w-8 h-8 text-primary" />
               Permission Management
             </h1>
             <p className="mt-2 text-gray-600">
@@ -191,7 +191,7 @@ const PermissionsPage: React.FC = () => {
                 onClick={() => setSelectedRole(role)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${
                   selectedRole === role
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-primary text-primary'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -261,7 +261,7 @@ const PermissionsPage: React.FC = () => {
                       type="checkbox"
                       checked={permission.can_view}
                       onChange={(e) => handlePermissionChange(permission, 'can_view', e.target.checked)}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-primary rounded focus:ring-primary"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -269,7 +269,7 @@ const PermissionsPage: React.FC = () => {
                       type="checkbox"
                       checked={permission.can_create}
                       onChange={(e) => handlePermissionChange(permission, 'can_create', e.target.checked)}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-primary rounded focus:ring-primary"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -277,7 +277,7 @@ const PermissionsPage: React.FC = () => {
                       type="checkbox"
                       checked={permission.can_edit}
                       onChange={(e) => handlePermissionChange(permission, 'can_edit', e.target.checked)}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-primary rounded focus:ring-primary"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -285,7 +285,7 @@ const PermissionsPage: React.FC = () => {
                       type="checkbox"
                       checked={permission.can_delete}
                       onChange={(e) => handlePermissionChange(permission, 'can_delete', e.target.checked)}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-primary rounded focus:ring-primary"
                     />
                   </td>
                 </tr>
@@ -296,7 +296,7 @@ const PermissionsPage: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="mt-6 bg-blue-50 rounded-lg p-4">
+      <div className="mt-6 bg-primary-50 rounded-lg p-4">
         <h3 className="text-sm font-medium text-blue-900 mb-2">Permission Actions:</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-blue-800">
           <div className="flex items-center gap-2">

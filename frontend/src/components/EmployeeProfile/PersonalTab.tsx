@@ -54,7 +54,7 @@ export const PersonalTab: React.FC<PersonalTabProps> = ({ userId }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
+        <h2 className="text-2xl font-medium text-gray-900">Personal Information</h2>
         {canEdit && !editing && (
           <button
             onClick={() => setEditing(true)}
@@ -83,7 +83,7 @@ export const PersonalTab: React.FC<PersonalTabProps> = ({ userId }) => {
               type="tel"
               value={formData.phone || ''}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="Enter phone number"
             />
           ) : (
@@ -98,7 +98,7 @@ export const PersonalTab: React.FC<PersonalTabProps> = ({ userId }) => {
               type="url"
               value={formData.avatar_url || ''}
               onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="Enter avatar URL"
             />
           ) : (

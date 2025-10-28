@@ -19,6 +19,11 @@ self.addEventListener('install', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+  // Don't cache API requests
+  if (event.request.url.includes('/api/') || event.request.url.includes('localhost:8000')) {
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {

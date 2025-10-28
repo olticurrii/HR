@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, 
   CheckSquare, 
@@ -19,40 +20,55 @@ import {
   ChevronRight,
   Briefcase,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  Building,
+  Zap
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { settingsService } from '../../services/settingsService';
 
-// Regular navigation items (not in dropdown)
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'manager', 'employee'] },
-  { name: 'Performance', href: '/performance', icon: TrendingUp, roles: ['admin', 'manager', 'employee'], requiresPerformanceModule: true },
-  { name: 'Time Tracking', href: '/time-tracking', icon: Clock, roles: ['admin', 'manager', 'employee'] },
-  { name: 'Leave Management', href: '/leave-management', icon: Calendar, roles: ['admin', 'manager', 'employee'] },
-  { name: 'Feedback', href: '/feedback', icon: MessageCircle, roles: ['admin', 'manager', 'employee'] },
-  { name: 'Chat', href: '/chat', icon: MessageSquare, roles: ['admin', 'manager', 'employee'] },
-];
-
-// Analytics dropdown items (Admin only)
-const analyticsDropdownItems = [
-  { name: 'Feedback Insights', href: '/feedback/insights', icon: TrendingUp, roles: ['admin'] },
-  { name: 'Admin Time Tracking', href: '/time-tracking/admin', icon: BarChart3, roles: ['admin', 'manager'] },
-];
-
-// Workflow dropdown items
-const workflowDropdownItems = [
-  { name: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['admin', 'manager', 'employee'] },
-  { name: 'Projects', href: '/projects', icon: FolderOpen, roles: ['admin', 'manager', 'employee'] },
-];
-
-// Users dropdown items
-const usersDropdownItems = [
-  { name: 'Org Chart', href: '/people/org-chart', icon: Network, roles: ['admin', 'manager'] },
-  { name: 'User Management', href: '/user-management', icon: Users, roles: ['admin'] },
-  { name: 'Role Management', href: '/role-management', icon: Shield, roles: ['admin'] },
-  { name: 'Roles', href: '/roles', icon: UserCog, roles: ['admin'] },
-  { name: 'Permissions', href: '/permissions', icon: Lock, roles: ['admin'] },
+// Navigation sections with modern grouping and visual hierarchy
+const navigationSections = [
+  {
+    title: 'Core',
+    items: [
+      { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'manager', 'employee'] },
+    ]
+  },
+  {
+    title: 'Operations',
+    items: [
+      { name: 'Tasks', href: '/tasks', icon: CheckSquare, roles: ['admin', 'manager', 'employee'] },
+      { name: 'Projects', href: '/projects', icon: FolderOpen, roles: ['admin', 'manager', 'employee'] },
+      { name: 'Time Tracking', href: '/time-tracking', icon: Clock, roles: ['admin', 'manager', 'employee'] },
+      { name: 'Leave Management', href: '/leave-management', icon: Calendar, roles: ['admin', 'manager', 'employee'] },
+      { name: 'Chat', href: '/chat', icon: MessageSquare, roles: ['admin', 'manager', 'employee'] },
+    ]
+  },
+  {
+    title: 'Performance',
+    items: [
+      { name: 'Performance', href: '/performance', icon: TrendingUp, roles: ['admin', 'manager', 'employee'], requiresPerformanceModule: true },
+      { name: 'Feedback', href: '/feedback', icon: MessageCircle, roles: ['admin', 'manager', 'employee'] },
+    ]
+  },
+  {
+    title: 'People',
+    items: [
+      { name: 'Org Chart', href: '/people/org-chart', icon: Network, roles: ['admin', 'manager'] },
+      { name: 'User Management', href: '/user-management', icon: Users, roles: ['admin'] },
+      { name: 'Role Management', href: '/role-management', icon: Shield, roles: ['admin'] },
+      { name: 'Roles', href: '/roles', icon: UserCog, roles: ['admin'] },
+      { name: 'Permissions', href: '/permissions', icon: Lock, roles: ['admin'] },
+    ]
+  },
+  {
+    title: 'Analytics',
+    items: [
+      { name: 'Feedback Insights', href: '/feedback/insights', icon: BarChart3, roles: ['admin'] },
+      { name: 'Admin Time Tracking', href: '/time-tracking/admin', icon: Clock, roles: ['admin', 'manager'] },
+    ]
+  }
 ];
 
 // Bottom navigation items
@@ -64,10 +80,8 @@ const bottomNavigation = [
 const Sidebar: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
-  const [workflowDropdownOpen, setWorkflowDropdownOpen] = useState(true);
-  const [usersDropdownOpen, setUsersDropdownOpen] = useState(true);
-  const [analyticsDropdownOpen, setAnalyticsDropdownOpen] = useState(true);
   const [performanceModuleEnabled, setPerformanceModuleEnabled] = useState(true);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -82,241 +96,144 @@ const Sidebar: React.FC = () => {
   }, []);
 
   const hasAccess = (allowedRoles: string[]) => {
-    // Check if current user's role is in the allowed roles
     if (!user) return false;
     return allowedRoles.includes(user.role);
   };
 
-  const filteredNavigation = navigation.filter(item => {
-    // Check role access
-    if (!hasAccess(item.roles)) return false;
-    
-    // Check if performance module is required and enabled
-    if ((item as any).requiresPerformanceModule && !performanceModuleEnabled) {
-      return false;
-    }
-    
-    return true;
-  });
-  const filteredWorkflowDropdown = workflowDropdownItems.filter(item => hasAccess(item.roles));
-  const filteredUsersDropdown = usersDropdownItems.filter(item => hasAccess(item.roles));
-  const filteredAnalyticsDropdown = analyticsDropdownItems.filter(item => hasAccess(item.roles));
-  const filteredBottomNavigation = bottomNavigation.filter(item => hasAccess(item.roles));
+  const toggleSection = (sectionTitle: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }));
+  };
 
-  // Check if any workflow dropdown route is active
-  const isWorkflowDropdownActive = workflowDropdownItems.some(item => location.pathname.startsWith(item.href));
-
-  // Check if any users dropdown route is active
-  const isUsersDropdownActive = usersDropdownItems.some(item => location.pathname === item.href);
-
-  // Check if any analytics dropdown route is active
-  const isAnalyticsDropdownActive = analyticsDropdownItems.some(item => location.pathname.startsWith(item.href));
+  const isSectionActive = (items: any[]) => {
+    return items.some(item => location.pathname.startsWith(item.href));
+  };
 
   return (
-    <div className="w-64 bg-white shadow-sm border-r flex flex-col h-screen">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-800">Navigation</h2>
+    <div className="w-64 bg-white dark:bg-neutral-dark shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+            <Building className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white">HR Portal</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Management System</p>
+          </div>
+        </div>
       </div>
       
-      <nav className="px-4 pb-4 flex-1 overflow-y-auto">
-        <ul className="space-y-2">
-          {/* Regular navigation items */}
-          {filteredNavigation.map((item) => {
-            const Icon = item.icon;
+      <nav className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="space-y-8">
+          {/* Navigation Sections */}
+          {navigationSections.map((section) => {
+            const filteredItems = section.items.filter(item => {
+              // Check role access
+              if (!hasAccess(item.roles)) return false;
+              
+              // Check if performance module is required and enabled
+              if ((item as any).requiresPerformanceModule && !performanceModuleEnabled) {
+                return false;
+              }
+              
+              return true;
+            });
+
+            // Don't render section if no items are accessible
+            if (filteredItems.length === 0) return null;
+
+            const isCollapsed = collapsedSections[section.title];
+            const hasActiveItem = isSectionActive(filteredItems);
+            
             return (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`
-                  }
+              <div key={section.title}>
+                {/* Section Header */}
+                <motion.button
+                  onClick={() => toggleSection(section.title)}
+                  className={`flex items-center justify-between w-full text-left mb-3 px-2 py-1 rounded-lg transition-all duration-200 group ${
+                    hasActiveItem 
+                      ? 'text-accent dark:text-accent-400' 
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:text-accent'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {item.name}
-                </NavLink>
-              </li>
+                  <span className="text-xs font-medium uppercase tracking-wider">{section.title}</span>
+                  <motion.div
+                    animate={{ rotate: isCollapsed ? -90 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </motion.div>
+                </motion.button>
+
+                {/* Section Items */}
+                <AnimatePresence>
+                  {!isCollapsed && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-1"
+                    >
+                      {filteredItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <NavLink
+                            key={item.name}
+                            to={item.href}
+                            className={({ isActive }) =>
+                              `flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
+                                isActive
+                                  ? 'gradient-accent text-white shadow-lg shadow-accent/25 accent-underline'
+                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white hover:text-accent'
+                              }`
+                            }
+                          >
+                            <Icon className="w-5 h-5 mr-3 transition-transform duration-200 group-hover:scale-110" />
+                            <span>{item.name}</span>
+                          </NavLink>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             );
           })}
-
-          {/* Workflow Dropdown */}
-          {filteredWorkflowDropdown.length > 0 && (
-            <li>
-              <button
-                onClick={() => setWorkflowDropdownOpen(!workflowDropdownOpen)}
-                className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isWorkflowDropdownActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <div className="flex items-center">
-                  <Briefcase className="w-5 h-5 mr-3" />
-                  Workflow
-                </div>
-                {workflowDropdownOpen ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </button>
-
-              {/* Dropdown Items */}
-              {workflowDropdownOpen && (
-                <ul className="mt-2 ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
-                  {filteredWorkflowDropdown.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <li key={item.name}>
-                        <NavLink
-                          to={item.href}
-                          className={({ isActive }) =>
-                            `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              isActive
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                            }`
-                          }
-                        >
-                          <Icon className="w-4 h-4 mr-3" />
-                          {item.name}
-                        </NavLink>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
-          )}
-
-          {/* Users Dropdown */}
-          {filteredUsersDropdown.length > 0 && (
-            <li>
-              <button
-                onClick={() => setUsersDropdownOpen(!usersDropdownOpen)}
-                className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isUsersDropdownActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <div className="flex items-center">
-                  <Users className="w-5 h-5 mr-3" />
-                  Users
-                </div>
-                {usersDropdownOpen ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </button>
-
-              {/* Dropdown Items */}
-              {usersDropdownOpen && (
-                <ul className="mt-2 ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
-                  {filteredUsersDropdown.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <li key={item.name}>
-                        <NavLink
-                          to={item.href}
-                          className={({ isActive }) =>
-                            `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              isActive
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                            }`
-                          }
-                        >
-                          <Icon className="w-4 h-4 mr-3" />
-                          {item.name}
-                        </NavLink>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
-          )}
-
-          {/* Analytics Dropdown */}
-          {filteredAnalyticsDropdown.length > 0 && (
-            <li>
-              <button
-                onClick={() => setAnalyticsDropdownOpen(!analyticsDropdownOpen)}
-                className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isAnalyticsDropdownActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <div className="flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-3" />
-                  Analytics
-                </div>
-                {analyticsDropdownOpen ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </button>
-
-              {/* Dropdown Items */}
-              {analyticsDropdownOpen && (
-                <ul className="mt-2 ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
-                  {filteredAnalyticsDropdown.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <li key={item.name}>
-                        <NavLink
-                          to={item.href}
-                          className={({ isActive }) =>
-                            `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              isActive
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                            }`
-                          }
-                        >
-                          <Icon className="w-4 h-4 mr-3" />
-                          {item.name}
-                        </NavLink>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
-          )}
 
           {/* Divider */}
-          <li className="border-t border-gray-200 my-4"></li>
+          <div className="border-t border-gray-200 dark:border-gray-700"></div>
 
-          {/* Bottom navigation items */}
-          {filteredBottomNavigation.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`
-                  }
-                >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {item.name}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
+          {/* Bottom Navigation */}
+          <div className="space-y-1">
+            {bottomNavigation
+              .filter(item => hasAccess(item.roles))
+              .map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    className={({ isActive }) =>
+                      `flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
+                        isActive
+                          ? 'gradient-accent text-white shadow-lg shadow-accent/25 accent-underline'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white hover:text-accent'
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5 mr-3 transition-transform duration-200 group-hover:scale-110" />
+                    <span>{item.name}</span>
+                  </NavLink>
+                );
+              })}
+          </div>
+        </div>
       </nav>
     </div>
   );

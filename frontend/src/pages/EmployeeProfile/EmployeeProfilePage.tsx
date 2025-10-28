@@ -112,7 +112,7 @@ const EmployeeProfilePage: React.FC = () => {
                     className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-lg">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-medium border-4 border-white shadow-lg">
                     {profile.full_name.split(' ').map(n => n[0]).join('')}
                   </div>
                 )}
@@ -120,7 +120,7 @@ const EmployeeProfilePage: React.FC = () => {
               </div>
               
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{profile.full_name}</h1>
+                <h1 className="text-3xl font-medium text-gray-900">{profile.full_name}</h1>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-lg text-gray-600">{profile.job_role || 'No Role'}</span>
                   {profile.department_name && (
@@ -175,7 +175,7 @@ const EmployeeProfilePage: React.FC = () => {
                 onClick={() => setActiveTab(tab)}
                 className={`px-6 py-3 text-sm font-medium transition-colors relative ${
                   activeTab === tab
-                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    ? 'text-primary border-b-2 border-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >

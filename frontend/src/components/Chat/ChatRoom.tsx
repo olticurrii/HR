@@ -140,7 +140,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatId, currentUserId }) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {loading ? (
           <div className="flex justify-center items-center h-full">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex justify-center items-center h-full">
@@ -169,14 +169,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatId, currentUserId }) => {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
-            className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             rows={1}
             disabled={sending || !socket}
           />
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim() || sending || !socket}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
           >
             {sending ? (
               <Loader2 className="w-4 h-4 animate-spin" />

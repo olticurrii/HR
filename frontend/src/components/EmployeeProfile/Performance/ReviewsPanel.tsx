@@ -60,7 +60,7 @@ export const ReviewsPanel: React.FC<ReviewsPanelProps> = ({ userId }) => {
                 disabled={!hasReviews}
                 className={`px-6 py-4 text-sm font-medium transition-colors relative ${
                   activeReviewTab === type
-                    ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
+                    ? 'text-primary border-b-2 border-blue-600 -mb-px'
                     : hasReviews
                     ? 'text-gray-600 hover:text-gray-900'
                     : 'text-gray-400 cursor-not-allowed'
@@ -68,7 +68,7 @@ export const ReviewsPanel: React.FC<ReviewsPanelProps> = ({ userId }) => {
               >
                 {type.charAt(0).toUpperCase() + type.slice(1)} Review
                 {hasReviews && (
-                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 rounded-full">
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-blue-600 rounded-full">
                     {reviews.find(r => r.reviewer_type === type)?.questions_and_answers.length || 0}
                   </span>
                 )}
@@ -88,9 +88,9 @@ export const ReviewsPanel: React.FC<ReviewsPanelProps> = ({ userId }) => {
           {currentReviews.questions_and_answers.map((qa, index) => (
             <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-start mb-4">
-                <h4 className="text-lg font-semibold text-gray-900 flex-1">{qa.question}</h4>
+                <h4 className="text-lg font-medium text-gray-900 flex-1">{qa.question}</h4>
                 {qa.rating && (
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getRatingColor(qa.rating)}`}>
+                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${getRatingColor(qa.rating)}`}>
                     {getRatingLabel(qa.rating)}
                   </span>
                 )}

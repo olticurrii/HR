@@ -1,17 +1,345 @@
+/* Import Traxcis Brand Font - Outfit */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Global Styles with Traxcis Branding */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-weight: 400; /* Outfit Regular for body */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-neutral-light dark:bg-neutral-dark text-gray-900 dark:text-white transition-colors duration-300;
+  }
+  
+  /* Typography with Outfit weights */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 500; /* Outfit Medium for headlines */
+  }
+  
+  p, span, div {
+    font-weight: 400; /* Outfit Regular for text */
+  }
+  
+  .text-body {
+    font-weight: 300; /* Outfit Light for body copy */
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent dark:bg-accent-600;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Custom Component Styles */
+@layer components {
+  /* Glassmorphism effect for modern cards */
+  .glass {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    @apply bg-white/80 dark:bg-gray-900/80 border border-gray-200/50 dark:border-gray-700/50;
+  }
+
+  /* Traxcis Gradient text utility */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent;
+  }
+  
+  /* Traxcis Accent Gradient */
+  .gradient-accent {
+    @apply bg-gradient-to-r from-accent-500 to-accent-600;
+  }
+  
+  /* Traxcis Primary Gradient */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700;
+  }
+
+  /* Traxcis Accent Line - for underlines below major headings */
+  .accent-line {
+    @apply border-accent rounded-sm inline-block;
+    border-bottom-width: 3px;
+    border-bottom-style: solid;
+    width: 60px;
+    margin-top: 0.5rem;
+  }
+  
+  .accent-line.border-white\/50 {
+    border-bottom-color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  /* Section Divider with gradient */
+  .section-divider {
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(90deg, #F97316 0%, #2563EB 100%);
+    border-radius: 2px;
+    margin: 1.5rem 0;
+  }
+
+  /* KPI Card Styling - Traxcis V1 */
+  .kpi-card {
+    background-color: #F8FAFC !important; /* Clear Mist - Force the color */
+    @apply rounded-xl shadow-sm transition-all duration-300;
+  }
+
+  .kpi-card:hover {
+    @apply shadow-lg;
+    transform: translateY(-2px);
+  }
+
+  .kpi-card .kpi-title {
+    font-family: 'Outfit', sans-serif;
+    @apply font-medium;
+    color: #1E293B !important; /* Soft Charcoal */
+  }
+  
+  .dark .kpi-card .kpi-title {
+    color: #E2E8F0 !important; /* Lighter for dark mode */
+  }
+
+  .kpi-card .kpi-value {
+    @apply font-normal;
+    color: #2563EB !important; /* Electric Blue */
+    font-size: 1.5rem;
+  }
+  
+  /* Force Electric Blue on all KPI values regardless of other classes */
+  .kpi-card p.kpi-value,
+  .kpi-card .kpi-value,
+  .kpi-card [class*="kpi-value"] {
+    color: #2563EB !important;
+  }
+  
+  .dark .kpi-card .kpi-value,
+  .dark .kpi-card p.kpi-value {
+    color: #60A5FA !important; /* Lighter blue for dark mode */
+  }
+  
+  /* Force Citrus Core on all progress bars */
+  .kpi-card .progress-bar,
+  .kpi-card [class*="rounded-full"][class*="h-full"],
+  .kpi-card div[class*="rounded-full"] {
+    background-color: #F97316 !important; /* Citrus Core */
+  }
+  
+  /* Force goal progress bars to orange */
+  .goal-progress-bar,
+  div.goal-progress-bar {
+    background-color: #F97316 !important;
+  }
+
+  .kpi-card .progress-bar {
+    @apply bg-accent;
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+  
+  /* Goal Card Styling - Force Traxcis colors */
+  .goal-progress-bar {
+    background-color: #F97316 !important; /* Citrus Core accent */
+  }
+  
+  /* Active status badges should use primary, not blue */
+  [class*="bg-primary-100"][class*="text-primary-700"] {
+    background-color: #2563EB1A !important;
+    color: #2563EB !important;
+    border-color: #2563EB33 !important;
+  }
+  
+  /* Update Progress buttons - use accent */
+  button[class*="bg-accent"],
+  button.bg-accent {
+    background-color: #F97316 !important;
+  }
+  
+  button[class*="bg-accent"]:hover,
+  button.bg-accent:hover {
+    background-color: #EA580C !important;
+  }
+
+  /* Accent underline for active navigation items */
+  .accent-underline {
+    position: relative;
+  }
+
+  .accent-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #F97316;
+    border-radius: 2px;
+    transform: scaleX(1);
+    transition: transform 0.2s ease;
+    z-index: 1;
+  }
+
+  /* Accent underline for text-only elements (not full background) */
+  .accent-underline-text::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #F97316;
+    border-radius: 2px;
+  }
+
+  /* Section Title with Accent Underline */
+  .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    color: #1E293B;
+    position: relative;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #F97316;
+    border-radius: 2px;
+  }
+
+  /* Button Variants - Traxcis V1 */
+  .btn-primary {
+    background: #2563EB;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background: #1D4ED8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #2563EB;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    border: 2px solid #F97316;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background: #F97316;
+    color: white;
+    border-color: #F97316;
+  }
+
+  /* Focus styles for better accessibility - Traxcis branded */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-dark;
+  }
+
+  /* Modern shadow utilities */
+  .shadow-elegant {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .shadow-elegant-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Dark mode shadow variants */
+  .dark .shadow-elegant {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  }
+
+  .dark .shadow-elegant-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  }
 }
+
+/* Animation utilities */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+/* Force KPI colors */

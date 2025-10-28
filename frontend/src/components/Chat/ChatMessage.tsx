@@ -35,7 +35,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, currentUserId }) => 
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+            <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
               {message.sender_full_name.charAt(0).toUpperCase()}
             </div>
           )}
@@ -46,7 +46,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, currentUserId }) => 
           <div
             className={`px-4 py-2 rounded-lg ${
               isOwnMessage
-                ? 'bg-blue-500 text-white'
+                ? 'bg-primary-500 text-white'
                 : 'bg-gray-200 text-gray-800'
             }`}
           >

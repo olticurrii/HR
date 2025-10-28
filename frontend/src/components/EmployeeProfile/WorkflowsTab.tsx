@@ -33,7 +33,7 @@ export const WorkflowsTab: React.FC<WorkflowsTabProps> = ({ userId }) => {
       return 'bg-green-100 text-green-800 border-green-200';
     }
     if (statusLower.includes('progress') || statusLower.includes('active')) {
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-blue-100 text-blue-800 border-primary-200';
     }
     if (statusLower.includes('awaiting') || statusLower.includes('pending')) {
       return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -61,7 +61,7 @@ export const WorkflowsTab: React.FC<WorkflowsTabProps> = ({ userId }) => {
       {/* Tasks Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-xl font-bold text-gray-900">
+          <h3 className="text-xl font-medium text-gray-900">
             Assigned Tasks ({tasks.length})
           </h3>
         </div>
@@ -77,14 +77,14 @@ export const WorkflowsTab: React.FC<WorkflowsTabProps> = ({ userId }) => {
                   className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition text-left"
                 >
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{task.title}</h4>
+                    <h4 className="font-medium text-gray-900">{task.title}</h4>
                     {task.due_date && (
                       <p className="text-sm text-gray-500 mt-1">
                         Due: {new Date(task.due_date).toLocaleDateString()}
                       </p>
                     )}
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(task.status)}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
                     {task.status}
                   </span>
                 </button>
@@ -97,7 +97,7 @@ export const WorkflowsTab: React.FC<WorkflowsTabProps> = ({ userId }) => {
       {/* Projects Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-xl font-bold text-gray-900">
+          <h3 className="text-xl font-medium text-gray-900">
             Projects ({projects.length})
           </h3>
         </div>
@@ -113,9 +113,9 @@ export const WorkflowsTab: React.FC<WorkflowsTabProps> = ({ userId }) => {
                   className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition text-left"
                 >
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{project.title}</h4>
+                    <h4 className="font-medium text-gray-900">{project.title}</h4>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(project.status)}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
                     {project.status}
                   </span>
                 </button>

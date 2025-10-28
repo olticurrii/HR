@@ -33,7 +33,7 @@ const DepartmentItem: React.FC<DepartmentItemProps> = ({
       className={`
         p-4 border rounded-lg cursor-pointer transition-all duration-200
         ${isDragOver 
-          ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-300' 
+          ? 'border-blue-400 bg-primary-50 ring-2 ring-blue-300' 
           : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
         }
         ${canDrop ? 'hover:bg-gray-50' : 'opacity-60 cursor-not-allowed'}
@@ -45,7 +45,7 @@ const DepartmentItem: React.FC<DepartmentItemProps> = ({
     >
       <div className="flex items-center space-x-3">
         <div className="flex-shrink-0">
-          <Building2 className="w-8 h-8 text-blue-500" />
+          <Building2 className="w-8 h-8 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-medium text-gray-900 truncate">
@@ -65,7 +65,7 @@ const DepartmentItem: React.FC<DepartmentItemProps> = ({
       
       {/* Drop indicator */}
       {isDragOver && (
-        <div className="mt-2 text-xs text-blue-600 font-medium bg-white px-2 py-1 rounded shadow">
+        <div className="mt-2 text-xs text-primary font-medium bg-white px-2 py-1 rounded shadow">
           Move to {department.name}
         </div>
       )}

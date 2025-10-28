@@ -37,7 +37,7 @@ export const JobTab: React.FC<JobTabProps> = ({ userId }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Job Information</h2>
+      <h2 className="text-2xl font-medium text-gray-900 mb-6">Job Information</h2>
 
       <div className="space-y-6">
         <div>
@@ -55,7 +55,7 @@ export const JobTab: React.FC<JobTabProps> = ({ userId }) => {
           {data.manager_id ? (
             <button
               onClick={() => navigate(`/people/${data.manager_id}`)}
-              className="text-lg text-blue-600 hover:text-blue-700 hover:underline font-medium"
+              className="text-lg text-primary hover:text-blue-700 hover:underline font-medium"
             >
               {data.manager_name}
             </button>

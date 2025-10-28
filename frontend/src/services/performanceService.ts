@@ -176,8 +176,36 @@ export const performanceService = {
   },
 
   getAutoCalculatedKpis: async (userId: number, days: number = 30): Promise<any> => {
-    const response = await api.get(`/api/v1/performance/kpi-snapshots/auto-calculate/${userId}`, {
-      params: { days }
+    const response = await api.get(`/api/v1/kpis/auto-calculated`, {
+      params: { user_id: userId, days }
+    });
+    return response.data;
+  },
+  
+  // Trigger KPI calculation manually
+  triggerKpiCalculation: async (): Promise<any> => {
+    const response = await api.post('/api/v1/kpis/calculate');
+    return response.data;
+  },
+  
+  // Calculate KPIs immediately (synchronous)
+  calculateKpisNow: async (userId?: number, days: number = 90): Promise<any> => {
+    const response = await api.post('/api/v1/kpis/calculate-now', null, {
+      params: { user_id: userId, days }
+    });
+    return response.data;
+  },
+  
+  // Get KPI calculation status
+  getKpiStatus: async (): Promise<any> => {
+    const response = await api.get('/api/v1/kpis/status');
+    return response.data;
+  },
+  
+  // Get detailed insights for a specific metric
+  getMetricInsights: async (metricName: string, userId?: number, days: number = 90): Promise<any> => {
+    const response = await api.get(`/api/v1/kpis/insights/${encodeURIComponent(metricName)}`, {
+      params: { user_id: userId, days }
     });
     return response.data;
   },

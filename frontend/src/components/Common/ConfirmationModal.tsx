@@ -33,7 +33,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       case 'danger':
         return <AlertCircle className="w-6 h-6 text-red-600" />;
       default:
-        return <Info className="w-6 h-6 text-blue-600" />;
+        return <Info className="w-6 h-6 text-primary" />;
     }
   };
 
@@ -46,7 +46,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       case 'danger':
         return 'bg-red-600 hover:bg-red-700';
       default:
-        return 'bg-blue-600 hover:bg-blue-700';
+        return 'bg-primary hover:bg-primary-700';
     }
   };
 
@@ -67,7 +67,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+          <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
             {title}
           </h3>
 

@@ -32,7 +32,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ onGetPerformance }) =
       case 'done':
         return 'bg-green-100 text-green-800';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-accent-100 text-accent-800';
       case 'closed':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -47,7 +47,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ onGetPerformance }) =
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-6">Performance Summary</h2>
+        <h2 className="text-xl font-medium mb-6">Performance Summary</h2>
         <p className="text-gray-500">Loading performance data...</p>
       </div>
     );
@@ -56,7 +56,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ onGetPerformance }) =
   if (!performance) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-6">Performance Summary</h2>
+        <h2 className="text-xl font-medium mb-6">Performance Summary</h2>
         <p className="text-gray-500">Failed to load performance data.</p>
       </div>
     );
@@ -65,7 +65,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ onGetPerformance }) =
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Performance Summary</h2>
+        <h2 className="text-xl font-medium">Performance Summary</h2>
         <select
           value={windowDays}
           onChange={(e) => setWindowDays(Number(e.target.value))}
@@ -87,7 +87,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ onGetPerformance }) =
               <div key={index} className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600 mb-1">{kpi.name}</p>
                 <div className="flex items-baseline">
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-medium text-gray-900">
                     {kpi.value}
                     {kpi.unit && <span className="text-lg ml-1">{kpi.unit}</span>}
                   </p>
@@ -163,7 +163,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ onGetPerformance }) =
               </div>
               {performance.last_review.rating && (
                 <div className="flex items-center">
-                  <span className="text-2xl font-bold text-gray-900">
+                  <span className="text-2xl font-medium text-gray-900">
                     {performance.last_review.rating}
                   </span>
                   <span className="text-sm text-gray-600 ml-1">/5</span>
@@ -193,7 +193,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ onGetPerformance }) =
                 return (
                   <div key={index} className="flex-1 flex flex-col items-center">
                     <div
-                      className="w-full bg-blue-500 rounded-t"
+                      className="w-full bg-primary-500 rounded-t"
                       style={{ height: `${heightPercent}%` }}
                       title={`${formatDate(point.date)}: ${point.score}`}
                     ></div>

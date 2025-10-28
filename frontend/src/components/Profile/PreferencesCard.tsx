@@ -68,7 +68,7 @@ const PreferencesCard: React.FC<PreferencesCardProps> = ({ profile, onUpdate }) 
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">Preferences</h2>
+      <h2 className="text-xl font-medium mb-6">Preferences</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Timezone */}
@@ -126,7 +126,7 @@ const PreferencesCard: React.FC<PreferencesCardProps> = ({ profile, onUpdate }) 
                 onClick={() => handleChange('theme', theme.value)}
                 className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
                   formData.theme === theme.value
-                    ? 'border-blue-600 bg-blue-50 text-blue-700'
+                    ? 'border-blue-600 bg-primary-50 text-blue-700'
                     : 'border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -147,7 +147,7 @@ const PreferencesCard: React.FC<PreferencesCardProps> = ({ profile, onUpdate }) 
                 type="checkbox"
                 checked={formData.email_notifications}
                 onChange={(e) => handleChange('email_notifications', e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
               />
               <span className="ml-2 text-sm text-gray-700">
                 Email notifications

@@ -103,7 +103,7 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">Security</h2>
+      <h2 className="text-xl font-medium mb-6">Security</h2>
 
       {/* Tabs */}
       <div className="flex space-x-4 mb-6 border-b">
@@ -111,7 +111,7 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
           onClick={() => setActiveTab('password')}
           className={`pb-2 px-1 font-medium ${
             activeTab === 'password'
-              ? 'border-b-2 border-blue-600 text-blue-600'
+              ? 'border-b-2 border-blue-600 text-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -121,7 +121,7 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
           onClick={() => setActiveTab('sessions')}
           className={`pb-2 px-1 font-medium ${
             activeTab === 'sessions'
-              ? 'border-b-2 border-blue-600 text-blue-600'
+              ? 'border-b-2 border-blue-600 text-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -131,7 +131,7 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
           onClick={() => setActiveTab('2fa')}
           className={`pb-2 px-1 font-medium ${
             activeTab === '2fa'
-              ? 'border-b-2 border-blue-600 text-blue-600'
+              ? 'border-b-2 border-blue-600 text-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -214,7 +214,7 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
                   <div
                     key={session.id}
                     className={`p-4 border rounded-lg ${
-                      session.is_current ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      session.is_current ? 'border-primary bg-primary-50' : 'border-gray-200'
                     }`}
                   >
                     <div className="flex justify-between items-start">

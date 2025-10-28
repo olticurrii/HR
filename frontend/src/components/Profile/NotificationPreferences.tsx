@@ -82,7 +82,7 @@ const NotificationPreferences: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-6 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+        <h2 className="text-lg font-medium text-gray-900 flex items-center">
           <Bell className="w-5 h-5 mr-2" />
           Notification Preferences
         </h2>
@@ -132,7 +132,7 @@ const NotificationPreferences: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleToggle(`email_${type.id}`)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     preferences[`email_${type.id}`] ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -152,7 +152,7 @@ const NotificationPreferences: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleToggle(`inapp_${type.id}`)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     preferences[`inapp_${type.id}`] ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -171,7 +171,7 @@ const NotificationPreferences: React.FC = () => {
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="mt-6 bg-primary-50 border border-primary-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
             <strong>💡 Tip:</strong> Turn off notifications for events you don't want to be alerted about. 
             You can always change these settings later.

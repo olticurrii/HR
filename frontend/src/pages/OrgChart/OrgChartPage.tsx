@@ -245,11 +245,14 @@ const OrgChartPage: React.FC = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Network className="w-6 h-6 mr-2" />
-            Organization Chart
+          <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
+            <span className="flex items-center">
+              <Network className="w-6 h-6 mr-2" />
+              Organization Chart
+            </span>
+            <span className="accent-line mt-2"></span>
           </h1>
-          <p className="text-gray-600">View and manage your organization structure</p>
+          <p className="text-gray-600 dark:text-gray-400 font-light">View and manage your organization structure</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-center text-gray-500">
@@ -266,11 +269,14 @@ const OrgChartPage: React.FC = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Network className="w-6 h-6 mr-2" />
-            Organization Chart
+          <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
+            <span className="flex items-center">
+              <Network className="w-6 h-6 mr-2" />
+              Organization Chart
+            </span>
+            <span className="accent-line mt-2"></span>
           </h1>
-          <p className="text-gray-600">View and manage your organization structure</p>
+          <p className="text-gray-600 dark:text-gray-400 font-light">View and manage your organization structure</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-center text-gray-500">
@@ -287,11 +293,14 @@ const OrgChartPage: React.FC = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Network className="w-6 h-6 mr-2" />
-            Organization Chart
+          <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
+            <span className="flex items-center">
+              <Network className="w-6 h-6 mr-2" />
+              Organization Chart
+            </span>
+            <span className="accent-line mt-2"></span>
           </h1>
-          <p className="text-gray-600">View and manage your organization structure</p>
+          <p className="text-gray-600 dark:text-gray-400 font-light">View and manage your organization structure</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-center text-gray-500">
@@ -300,7 +309,7 @@ const OrgChartPage: React.FC = () => {
             <p className="text-sm mb-4">{error}</p>
             <button
               onClick={loadData}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
               Try Again
             </button>
@@ -314,7 +323,7 @@ const OrgChartPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-2xl font-medium text-gray-900 flex items-center">
             <Network className="w-6 h-6 mr-2" />
             Organization Chart
           </h1>
@@ -331,7 +340,7 @@ const OrgChartPage: React.FC = () => {
             <select
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value="all">All Departments</option>
               {departments.map((dept) => (
@@ -394,7 +403,7 @@ const OrgChartPage: React.FC = () => {
       {/* Organization Tree - Full Width with Unassigned Inside */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
             <Users className="w-5 h-5 mr-2" />
             Organization Structure
             {selectedDepartment !== 'all' && (
@@ -423,7 +432,7 @@ const OrgChartPage: React.FC = () => {
       </div>
 
       {/* Instructions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
         <h3 className="text-sm font-medium text-blue-900 mb-2">Navigation & Controls</h3>
         <ul className="text-sm text-blue-800 space-y-1">
           <li>• Scroll or use two fingers on touchpad to zoom in/out</li>

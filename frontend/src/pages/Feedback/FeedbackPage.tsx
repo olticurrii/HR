@@ -198,7 +198,7 @@ const FeedbackPage: React.FC = () => {
       );
     } else if (feedback.recipient_type === 'EVERYONE') {
       return (
-        <span className="inline-flex items-center text-sm text-blue-600">
+        <span className="inline-flex items-center text-sm text-primary">
           <Users className="w-4 h-4 mr-1" />
           Everyone
         </span>
@@ -234,11 +234,14 @@ const FeedbackPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-          <MessageCircle className="w-6 h-6 mr-2" />
-          Feedback
+        <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
+          <span className="flex items-center">
+            <MessageCircle className="w-6 h-6 mr-2" />
+            Feedback
+          </span>
+          <span className="accent-line mt-2"></span>
         </h1>
-        <p className="text-gray-600">Share feedback and insights with your team</p>
+        <p className="text-gray-600 dark:text-gray-400 font-light">Share feedback and insights with your team</p>
       </div>
 
       {/* Tabs */}
@@ -248,7 +251,7 @@ const FeedbackPage: React.FC = () => {
             onClick={() => setActiveTab('create')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'create'
-                ? 'border-blue-500 text-blue-600'
+                ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
@@ -259,7 +262,7 @@ const FeedbackPage: React.FC = () => {
             onClick={() => setActiveTab('received')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'received'
-                ? 'border-blue-500 text-blue-600'
+                ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
@@ -270,7 +273,7 @@ const FeedbackPage: React.FC = () => {
             onClick={() => setActiveTab('sent')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'sent'
-                ? 'border-blue-500 text-blue-600'
+                ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
@@ -283,7 +286,7 @@ const FeedbackPage: React.FC = () => {
                 onClick={() => setActiveTab('all')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'all'
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-primary text-primary'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -294,7 +297,7 @@ const FeedbackPage: React.FC = () => {
                 onClick={() => setActiveTab('insights')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'insights'
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-primary text-primary'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -321,7 +324,7 @@ const FeedbackPage: React.FC = () => {
       {/* Content */}
       {activeTab === 'create' && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Send Feedback</h2>
+          <h2 className="text-lg font-medium mb-4">Send Feedback</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Recipient Type */}
             <div>
@@ -337,7 +340,7 @@ const FeedbackPage: React.FC = () => {
                   }}
                   className={`p-3 border-2 rounded-lg flex flex-col items-center ${
                     recipientType === 'EVERYONE'
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -352,7 +355,7 @@ const FeedbackPage: React.FC = () => {
                   }}
                   className={`p-3 border-2 rounded-lg flex flex-col items-center ${
                     recipientType === 'ADMIN'
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -364,7 +367,7 @@ const FeedbackPage: React.FC = () => {
                   onClick={() => setRecipientType('USER')}
                   className={`p-3 border-2 rounded-lg flex flex-col items-center ${
                     recipientType === 'USER'
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -383,7 +386,7 @@ const FeedbackPage: React.FC = () => {
                 <select
                   value={recipientId || ''}
                   onChange={(e) => setRecipientId(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 >
                   <option value="">Choose a user...</option>
@@ -405,7 +408,7 @@ const FeedbackPage: React.FC = () => {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Share your thoughts, suggestions, or concerns..."
                 required
               />
@@ -419,7 +422,7 @@ const FeedbackPage: React.FC = () => {
                   id="anonymous"
                   checked={isAnonymous}
                   onChange={(e) => setIsAnonymous(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                 />
                 <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-700">
                   Send anonymously
@@ -453,7 +456,7 @@ const FeedbackPage: React.FC = () => {
 
       {activeTab === 'received' && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Feedback Received</h2>
+          <h2 className="text-lg font-medium">Feedback Received</h2>
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -473,7 +476,7 @@ const FeedbackPage: React.FC = () => {
 
       {activeTab === 'sent' && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Feedback Sent</h2>
+          <h2 className="text-lg font-medium">Feedback Sent</h2>
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -493,7 +496,7 @@ const FeedbackPage: React.FC = () => {
 
       {activeTab === 'all' && isAdmin && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">All Feedback (Admin View)</h2>
+          <h2 className="text-lg font-medium">All Feedback (Admin View)</h2>
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>

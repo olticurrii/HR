@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Settings, Clock, Save, AlertCircle, CheckCircle, MessageCircle, TrendingUp, Bell } from 'lucide-react';
 import { settingsService, OrganizationSettings } from '../../services/settingsService';
 
@@ -163,13 +164,30 @@ const SettingsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-          <Settings className="w-6 h-6 mr-2" />
-          Organization Settings
-        </h1>
-        <p className="text-gray-600">Configure system settings and preferences (Admin Only)</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="gradient-primary rounded-3xl p-8 text-white relative overflow-hidden"
+      >
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full"></div>
+        <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white/5 rounded-full"></div>
+        
+        <div className="relative z-10">
+          <h1 className="text-3xl lg:text-4xl font-medium mb-2 flex flex-col">
+            <span className="flex items-center">
+              <Settings className="w-8 h-8 mr-3" />
+              Organization Settings
+            </span>
+            <span className="accent-line mt-2 border-white/50"></span>
+          </h1>
+          <p className="text-primary-100 text-lg font-normal">
+            Configure system settings and preferences (Admin Only)
+          </p>
+        </div>
+      </motion.div>
 
       {/* Alerts */}
       {error && (
@@ -188,7 +206,7 @@ const SettingsPage: React.FC = () => {
       {/* Time Tracking Settings */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h2 className="text-lg font-medium text-gray-900 flex items-center">
             <Clock className="w-5 h-5 mr-2" />
             Time Tracking
           </h2>
@@ -213,7 +231,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setAllowBreaks(!allowBreaks)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   allowBreaks ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -271,7 +289,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setRequireDocumentation(!requireDocumentation)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   requireDocumentation ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -289,9 +307,9 @@ const SettingsPage: React.FC = () => {
           </div>
 
           {/* Documentation Status Indicator */}
-          <div className={`p-4 rounded-lg ${requireDocumentation ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'}`}>
+          <div className={`p-4 rounded-lg ${requireDocumentation ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50 border border-gray-200'}`}>
             <div className="flex items-start">
-              <div className={`flex-shrink-0 ${requireDocumentation ? 'text-blue-600' : 'text-gray-600'}`}>
+              <div className={`flex-shrink-0 ${requireDocumentation ? 'text-primary' : 'text-gray-600'}`}>
                 {requireDocumentation ? (
                   <CheckCircle className="w-5 h-5" />
                 ) : (
@@ -316,7 +334,7 @@ const SettingsPage: React.FC = () => {
       {/* Organization Chart Settings */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h2 className="text-lg font-medium text-gray-900 flex items-center">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
@@ -342,7 +360,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowUnassignedPanel(!showUnassignedPanel)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   showUnassignedPanel ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -375,7 +393,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setManagerSubtreeEdit(!managerSubtreeEdit)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   managerSubtreeEdit ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -408,7 +426,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDepartmentColors(!departmentColors)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   departmentColors ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -441,7 +459,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setCompactView(!compactView)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   compactView ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -474,7 +492,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowConnectors(!showConnectors)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   showConnectors ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -496,7 +514,7 @@ const SettingsPage: React.FC = () => {
       {/* Feedback Settings */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h2 className="text-lg font-medium text-gray-900 flex items-center">
             <MessageCircle className="w-5 h-5 mr-2" />
             Feedback System Features
           </h2>
@@ -520,7 +538,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setAllowAnonymous(!allowAnonymous)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   allowAnonymous ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -553,7 +571,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setEnableThreading(!enableThreading)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   enableThreading ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -596,7 +614,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setEnableModeration(!enableModeration)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   enableModeration ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -629,7 +647,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setNotifyManagers(!notifyManagers)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   notifyManagers ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -662,7 +680,7 @@ const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setWeeklyDigest(!weeklyDigest)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   weeklyDigest ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
                 role="switch"
@@ -683,7 +701,7 @@ const SettingsPage: React.FC = () => {
         {/* Performance Module Settings */}
         <div className="bg-white rounded-lg shadow mt-6">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h2 className="text-lg font-medium text-gray-900 flex items-center">
               <TrendingUp className="w-5 h-5 mr-2" />
               Performance Module Settings
             </h2>
@@ -712,7 +730,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setPerformanceModuleEnabled(!performanceModuleEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     performanceModuleEnabled ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -745,7 +763,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAllowSelfGoals(!allowSelfGoals)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     allowSelfGoals ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -779,7 +797,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setRequireGoalApproval(!requireGoalApproval)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     requireGoalApproval ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -813,7 +831,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEnablePeerReviews(!enablePeerReviews)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     enablePeerReviews ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -847,7 +865,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAllowAnonymousPeer(!allowAnonymousPeer)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     allowAnonymousPeer ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -881,7 +899,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowKpiTrends(!showKpiTrends)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     showKpiTrends ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -947,7 +965,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setMonthlyReports(!monthlyReports)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     monthlyReports ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -970,7 +988,7 @@ const SettingsPage: React.FC = () => {
         {/* Notification System Settings */}
         <div className="bg-white rounded-lg shadow mt-6">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h2 className="text-lg font-medium text-gray-900 flex items-center">
               <Bell className="w-5 h-5 mr-2" />
               Notification System Settings
             </h2>
@@ -994,7 +1012,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEmailNotificationsEnabled(!emailNotificationsEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     emailNotificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -1027,7 +1045,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setInappNotificationsEnabled(!inappNotificationsEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     inappNotificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"
@@ -1060,7 +1078,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setDailySummaryEnabled(!dailySummaryEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     dailySummaryEnabled ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                   role="switch"

@@ -134,7 +134,7 @@ const InsightsPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Feedback Insights</h1>
+          <h1 className="text-2xl font-medium text-gray-900">Feedback Insights</h1>
           <p className="text-sm text-gray-600 mt-1">
             Analytics, trends, and predictions for feedback data
           </p>
@@ -170,7 +170,7 @@ const InsightsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Feedback</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{summary.total_feedback}</p>
+                <p className="text-3xl font-medium text-gray-900 mt-1">{summary.total_feedback}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   Avg {summary.avg_daily_feedback}/day
                 </p>
@@ -190,7 +190,7 @@ const InsightsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Avg Sentiment</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">
+                <p className="text-3xl font-medium text-gray-900 mt-1">
                   {summary.avg_sentiment_score.toFixed(2)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Out of 1.0</p>
@@ -204,7 +204,7 @@ const InsightsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Positive</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">
+                <p className="text-3xl font-medium text-green-600 mt-1">
                   {summary.sentiment_distribution.positive}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -221,7 +221,7 @@ const InsightsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Negative</p>
-                <p className="text-3xl font-bold text-red-600 mt-1">
+                <p className="text-3xl font-medium text-red-600 mt-1">
                   {summary.sentiment_distribution.negative}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -240,7 +240,7 @@ const InsightsPage: React.FC = () => {
         {/* Feedback Volume Forecast */}
         {forecastCount && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
               Feedback Volume Forecast
             </h2>
             <ResponsiveContainer width="100%" height={300}>
@@ -296,7 +296,7 @@ const InsightsPage: React.FC = () => {
         {/* Sentiment Forecast */}
         {forecastSentiment && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
               Sentiment Score Forecast
             </h2>
             <ResponsiveContainer width="100%" height={300}>
@@ -353,7 +353,7 @@ const InsightsPage: React.FC = () => {
       {/* Top Keywords by Sentiment */}
       {keywordsBySentiment && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">
             Top Keywords by Sentiment
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -367,7 +367,7 @@ const InsightsPage: React.FC = () => {
                   <div key={idx} className="group hover:bg-green-50 p-2 rounded transition-colors">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-gray-900">{kw.keyword}</span>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-semibold">
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
                         {kw.frequency}
                       </span>
                     </div>
@@ -396,7 +396,7 @@ const InsightsPage: React.FC = () => {
                   <div key={idx} className="group hover:bg-gray-50 p-2 rounded transition-colors">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-gray-900">{kw.keyword}</span>
-                      <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full font-semibold">
+                      <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full font-medium">
                         {kw.frequency}
                       </span>
                     </div>
@@ -425,7 +425,7 @@ const InsightsPage: React.FC = () => {
                   <div key={idx} className="group hover:bg-red-50 p-2 rounded transition-colors">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-gray-900">{kw.keyword}</span>
-                      <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-semibold">
+                      <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
                         {kw.frequency}
                       </span>
                     </div>
@@ -450,7 +450,7 @@ const InsightsPage: React.FC = () => {
       {/* Top Overall Keywords */}
       {summary && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">
             Top Keywords Overall
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Users, UserPlus, Edit, Trash2, X, AlertCircle, CheckCircle, Mail, Briefcase } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import { useAuth } from '../../contexts/AuthContext';
 import API_BASE_URL from '../../config';
+import KPICard from '../../components/shared/KPICard';
 
 interface User {
   id: number;
@@ -217,7 +219,7 @@ const UserManagementPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Loading users...</p>
         </div>
       </div>
@@ -227,26 +229,41 @@ const UserManagementPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Users className="w-8 h-8 text-blue-600" />
-              User Management
-            </h1>
-            <p className="mt-2 text-gray-600">
-              Create, edit, and manage all users in your organization
-            </p>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="gradient-primary rounded-3xl p-8 text-white relative overflow-hidden mb-8"
+      >
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full"></div>
+        <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white/5 rounded-full"></div>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="mb-6 lg:mb-0">
+              <h1 className="text-3xl lg:text-4xl font-medium mb-2 flex flex-col">
+                <span className="flex items-center">
+                  <Users className="w-8 h-8 mr-3" />
+                  User Management
+                </span>
+                <span className="accent-line mt-2 border-white/50"></span>
+              </h1>
+              <p className="text-primary-100 text-lg font-normal">
+                Create, edit, and manage all users in your organization
+              </p>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-xl hover:bg-accent hover:text-white transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+            >
+              <UserPlus className="w-5 h-5" />
+              Add User
+            </button>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <UserPlus className="w-5 h-5" />
-            Add User
-          </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Alerts */}
       {error && (
@@ -269,31 +286,38 @@ const UserManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="text-sm text-gray-600 mb-1">Total Users</div>
-          <div className="text-3xl font-bold text-gray-900">{users.length}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="text-sm text-gray-600 mb-1">Admins</div>
-          <div className="text-3xl font-bold text-red-600">
-            {users.filter(u => u.role === 'admin').length}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="text-sm text-gray-600 mb-1">Managers</div>
-          <div className="text-3xl font-bold text-blue-600">
-            {users.filter(u => u.role === 'manager').length}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="text-sm text-gray-600 mb-1">Employees</div>
-          <div className="text-3xl font-bold text-green-600">
-            {users.filter(u => u.role === 'employee').length}
-          </div>
-        </div>
-      </div>
+      {/* Stats - Using KPICards */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+      >
+        <KPICard
+          name="Total Users"
+          value={users.length}
+          icon={Users}
+          color="primary"
+        />
+        <KPICard
+          name="Admins"
+          value={users.filter(u => u.role === 'admin').length}
+          icon={Users}
+          color="red"
+        />
+        <KPICard
+          name="Managers"
+          value={users.filter(u => u.role === 'manager').length}
+          icon={Users}
+          color="primary"
+        />
+        <KPICard
+          name="Employees"
+          value={users.filter(u => u.role === 'employee').length}
+          icon={Users}
+          color="green"
+        />
+      </motion.div>
 
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -326,7 +350,7 @@ const UserManagementPage: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-primary font-medium">
                         {user.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
                       </span>
                     </div>
@@ -368,7 +392,7 @@ const UserManagementPage: React.FC = () => {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => openEditModal(user)}
-                        className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded"
+                        className="text-primary hover:text-blue-900 p-2 hover:bg-primary-50 rounded"
                         title="Edit user"
                       >
                         <Edit className="w-4 h-4" />
@@ -396,7 +420,7 @@ const UserManagementPage: React.FC = () => {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Create New User</h2>
+            <h2 className="text-xl font-medium mb-4">Create New User</h2>
             <form onSubmit={handleCreateUser}>
               <div className="space-y-4">
                 <div>
@@ -407,7 +431,7 @@ const UserManagementPage: React.FC = () => {
                     type="text"
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     required
                   />
                 </div>
@@ -420,7 +444,7 @@ const UserManagementPage: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     required
                   />
                 </div>
@@ -433,7 +457,7 @@ const UserManagementPage: React.FC = () => {
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     required
                     minLength={6}
                   />
@@ -447,7 +471,7 @@ const UserManagementPage: React.FC = () => {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     required
                   >
                     <option value="employee">Employee</option>
@@ -475,7 +499,7 @@ const UserManagementPage: React.FC = () => {
                                 setFormData({ ...formData, custom_roles: formData.custom_roles.filter(r => r !== customRole.value) });
                               }
                             }}
-                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            className="mr-2 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                           />
                           <span className="text-sm text-gray-900">{customRole.label}</span>
                         </label>
@@ -493,7 +517,7 @@ const UserManagementPage: React.FC = () => {
                     type="text"
                     value={formData.job_role}
                     onChange={(e) => setFormData({ ...formData, job_role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     placeholder="e.g., Software Engineer"
                   />
                 </div>
@@ -506,7 +530,7 @@ const UserManagementPage: React.FC = () => {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     placeholder="+1 (555) 000-0000"
                   />
                 </div>
@@ -519,7 +543,7 @@ const UserManagementPage: React.FC = () => {
                     <select
                       value={formData.department_id}
                       onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     >
                       <option value="">No Department</option>
                       {departments.map((dept) => (
@@ -559,7 +583,7 @@ const UserManagementPage: React.FC = () => {
       {showEditModal && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Edit User</h2>
+            <h2 className="text-xl font-medium mb-4">Edit User</h2>
             <form onSubmit={handleUpdateUser}>
               <div className="space-y-4">
                 <div>
@@ -583,7 +607,7 @@ const UserManagementPage: React.FC = () => {
                     type="text"
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     required
                   />
                 </div>
@@ -595,7 +619,7 @@ const UserManagementPage: React.FC = () => {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     required
                   >
                     <option value="employee">Employee</option>
@@ -623,7 +647,7 @@ const UserManagementPage: React.FC = () => {
                                 setFormData({ ...formData, custom_roles: formData.custom_roles.filter(r => r !== customRole.value) });
                               }
                             }}
-                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            className="mr-2 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                           />
                           <span className="text-sm text-gray-900">{customRole.label}</span>
                         </label>
@@ -641,7 +665,7 @@ const UserManagementPage: React.FC = () => {
                     type="text"
                     value={formData.job_role}
                     onChange={(e) => setFormData({ ...formData, job_role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                   />
                 </div>
 
@@ -653,7 +677,7 @@ const UserManagementPage: React.FC = () => {
                     <select
                       value={formData.department_id}
                       onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     >
                       <option value="">No Department</option>
                       {departments.map((dept) => (
@@ -697,7 +721,7 @@ const UserManagementPage: React.FC = () => {
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
-              <h2 className="text-xl font-bold">Delete User</h2>
+              <h2 className="text-xl font-medium">Delete User</h2>
             </div>
             
             <p className="text-gray-600 mb-6">

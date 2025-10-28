@@ -277,21 +277,21 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onKeyDown={handleKeyDown}>
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />
+            <h2 className="text-xl font-medium text-gray-900 dark:text-white flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-primary" />
               Record KPI Snapshot
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Track performance metrics over time
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             title="Close (Esc)"
           >
             <X className="w-5 h-5" />
@@ -301,21 +301,21 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-start">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded flex items-start">
               <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
               <div className="flex-1">{error}</div>
             </div>
           )}
 
           {/* Template Toggle */}
-          <div className="flex items-center gap-4 pb-4 border-b border-gray-200">
+          <div className="flex items-center gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={() => handleModeChange(true)}
               className={`px-4 py-2 rounded-md font-medium transition-colors ${
                 useTemplate
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               Use Template
@@ -326,7 +326,7 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
               className={`px-4 py-2 rounded-md font-medium transition-colors ${
                 !useTemplate
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               Custom KPI
@@ -336,10 +336,10 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
           {/* Template Selection */}
           {useTemplate && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Select KPI Template
               </label>
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-3">
                 {KPI_TEMPLATES.map((template) => (
                   <button
                     key={template.name}
@@ -347,12 +347,12 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                     onClick={() => handleTemplateSelect(template)}
                     className={`text-left px-3 py-2 rounded-md border-2 transition-colors ${
                       selectedTemplate === template.name
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                        ? 'border-primary bg-primary-50 dark:bg-blue-900/30'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <div className="font-medium text-sm text-gray-900">{template.name}</div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="font-medium text-sm text-gray-900 dark:text-white">{template.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {template.category} • Unit: {template.unit}
                     </div>
                   </button>
@@ -367,12 +367,12 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
               <div
                 key={row.id}
                 className={`border-2 rounded-lg p-4 ${
-                  row.validationError ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'
+                  row.validationError ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700'
                 }`}
               >
                 {/* Row Header */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     KPI Entry {rows.length > 1 ? `#${index + 1}` : ''}
                   </span>
                   {rows.length > 1 && (
@@ -390,10 +390,10 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   {/* KPI Name */}
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       KPI Name <span className="text-red-500">*</span>
                       {row.isLocked && (
-                        <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                        <span className="ml-2 text-xs text-primary bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded">
                           🔒 Locked
                         </span>
                       )}
@@ -405,14 +405,14 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                       required
                       disabled={row.isLocked}
                       maxLength={255}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-700"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:text-gray-700 dark:disabled:text-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="e.g., Task Completion Rate"
                     />
                   </div>
 
                   {/* Value */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Value <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -421,7 +421,7 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                       value={row.value}
                       onChange={(e) => updateRow(row.id, 'value', e.target.value)}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="85.5"
                     />
                     {row.validationError && row.value && (
@@ -431,10 +431,10 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
 
                   {/* Unit */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Unit
                       {row.isLocked && (
-                        <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                        <span className="ml-2 text-xs text-primary bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded">
                           🔒 Locked
                         </span>
                       )}
@@ -443,7 +443,7 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                       value={row.unit}
                       onChange={(e) => updateRow(row.id, 'unit', e.target.value)}
                       disabled={row.isLocked}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-700"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:text-gray-700 dark:disabled:text-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       {ALLOWED_UNITS.map(unit => (
                         <option key={unit} value={unit}>{unit}</option>
@@ -453,7 +453,7 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
 
                   {/* Snapshot Date */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Snapshot Date
                     </label>
                     <input
@@ -461,19 +461,19 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                       value={row.snapshotDate}
                       onChange={(e) => updateRow(row.id, 'snapshotDate', e.target.value)}
                       max={new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
 
                   {/* Period */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Period
                     </label>
                     <select
                       value={row.period}
                       onChange={(e) => updateRow(row.id, 'period', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="daily">Daily</option>
                       <option value="weekly">Weekly</option>
@@ -484,7 +484,7 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
 
                   {/* Visibility */}
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Visibility
                     </label>
                     <div className="flex gap-2">
@@ -496,7 +496,7 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                           className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
                             row.visibility === vis
                               ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
                           }`}
                         >
                           {vis.charAt(0).toUpperCase() + vis.slice(1)}
@@ -505,29 +505,16 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Measured By */}
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Measured By
-                    </label>
-                    <input
-                      type="text"
-                      value={currentUserName || 'Loading...'}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-                    />
-                  </div>
-
                   {/* Notes */}
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Notes (Optional)
                     </label>
                     <textarea
                       value={row.notes}
                       onChange={(e) => updateRow(row.id, 'notes', e.target.value)}
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="Add context about this measurement..."
                     />
                   </div>
@@ -535,16 +522,16 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
 
                 {/* Preview */}
                 {row.isValid && row.value && row.kpiName && (
-                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="text-xs text-gray-600 mb-1">Preview:</div>
+                  <div className="mt-4 bg-primary-50 dark:bg-blue-900/20 border border-primary-200 dark:border-blue-800 rounded-lg p-3">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Preview:</div>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-blue-600">
+                      <span className="text-2xl font-medium text-primary dark:text-blue-400">
                         {parseFloat(row.value).toFixed(row.unit === '$' || row.unit === '€' ? 2 : 1)}
                       </span>
-                      <span className="text-lg text-blue-600">{row.unit}</span>
-                      <span className="text-sm text-gray-700">— {row.kpiName}</span>
+                      <span className="text-lg text-primary dark:text-blue-400">{row.unit}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">— {row.kpiName}</span>
                     </div>
-                    <div className="text-xs text-gray-600 mt-1">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       {row.period.charAt(0).toUpperCase() + row.period.slice(1)} • 
                       Visible to: {row.visibility} • 
                       Date: {new Date(row.snapshotDate).toLocaleDateString()}
@@ -556,11 +543,11 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
           </div>
 
           {/* Add Another Button */}
-          <div className="border-t border-gray-200 pt-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <button
               type="button"
               onClick={addNewRow}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
+              className="text-sm text-primary hover:text-blue-700 font-medium flex items-center"
             >
               <Plus className="w-4 h-4 mr-1" />
               Add another snapshot
@@ -568,16 +555,16 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-            <div className="text-sm text-gray-500">
-              Press <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs">Esc</kbd> to close, 
-              <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs ml-1">Ctrl+Enter</kbd> to submit
+          <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Press <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded text-xs">Esc</kbd> to close, 
+              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded text-xs ml-1">Ctrl+Enter</kbd> to submit
             </div>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md font-medium"
                 disabled={loading}
               >
                 Cancel
@@ -585,7 +572,7 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
               <button
                 type="submit"
                 disabled={loading || !allValid}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center"
+                className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center"
                 title={!allValid ? 'Fix validation errors to enable' : ''}
               >
                 {loading ? (
@@ -609,4 +596,3 @@ const KpiRecordModalEnhanced: React.FC<KpiRecordModalProps> = ({
 };
 
 export default KpiRecordModalEnhanced;
-

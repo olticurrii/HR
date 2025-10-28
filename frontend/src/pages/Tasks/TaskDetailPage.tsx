@@ -1,281 +1,255 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Edit, CheckCircle, Clock, AlertCircle, User, Calendar, FolderOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { 
+  ArrowLeft, 
+  Edit, 
+  CheckCircle, 
+  Clock, 
+  AlertCircle, 
+  FolderOpen, 
+  Home,
+  ChevronRight,
+  Loader
+} from 'lucide-react';
+import { useQuery } from 'react-query';
 import { taskService, Task } from '../../services/taskService';
 import { projectService, Project } from '../../services/projectService';
 import { useAuth } from '../../contexts/AuthContext';
 import CommentsSection from '../../components/Tasks/CommentsSection';
+import TaskInfoCard from '../../components/Tasks/TaskInfoCard';
+import TaskPropertiesCard from '../../components/Tasks/TaskPropertiesCard';
 import toast from 'react-hot-toast';
 
 const TaskDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [task, setTask] = useState<Task | null>(null);
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (id) {
-      loadTask(parseInt(id));
-    }
-  }, [id]);
-
-  const loadTask = async (taskId: number) => {
-    setLoading(true);
-    try {
-      const taskData = await taskService.getTask(taskId);
-      setTask(taskData);
-      
-      // If task belongs to a project, load project details
-      if (taskData.project_id) {
-        try {
-          const projectData = await projectService.getProject(taskData.project_id);
-          setProject(projectData);
-        } catch (error) {
-          console.error('Error loading project:', error);
-        }
+  // Fetch task with React Query
+  const { 
+    data: task, 
+    isLoading: taskLoading, 
+    error: taskError 
+  } = useQuery(
+    ['task', id],
+    () => taskService.getTask(parseInt(id!)),
+    {
+      enabled: !!id,
+      refetchOnWindowFocus: false,
+      onError: (error) => {
+        console.error('Error loading task:', error);
+        toast.error('Failed to load task details');
+        navigate('/tasks');
       }
-    } catch (error) {
-      console.error('Error loading task:', error);
-      toast.error('Failed to load task details');
-      navigate('/tasks');
-    } finally {
-      setLoading(false);
     }
-  };
+  );
+
+  // Fetch project if task belongs to one
+  const { data: project } = useQuery(
+    ['project', task?.project_id],
+    () => projectService.getProject(task!.project_id!),
+    {
+      enabled: !!task?.project_id,
+      refetchOnWindowFocus: false,
+      onError: (error) => {
+        console.error('Error loading project:', error);
+      }
+    }
+  );
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />;
       case 'in_progress':
-        return <Clock className="w-5 h-5 text-blue-500" />;
+        return <Clock className="w-6 h-6 text-primary dark:text-blue-400" />;
       case 'pending':
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+        return <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400" />;
       case 'cancelled':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
+        return <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />;
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-500" />;
+        return <AlertCircle className="w-6 h-6 text-gray-500" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getStatusConfig = (status: string) => {
+    const configs = {
+      completed: {
+        color: 'text-emerald-600 dark:text-emerald-400',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+        borderColor: 'border-emerald-200 dark:border-emerald-800',
+        label: 'Completed'
+      },
+      in_progress: {
+        color: 'text-primary dark:text-blue-400',
+        bgColor: 'bg-primary-50 dark:bg-blue-900/20',
+        borderColor: 'border-primary-200 dark:border-blue-800',
+        label: 'In Progress'
+      },
+      pending: {
+        color: 'text-amber-600 dark:text-amber-400',
+        bgColor: 'bg-amber-50 dark:bg-amber-900/20',
+        borderColor: 'border-amber-200 dark:border-amber-800',
+        label: 'Pending'
+      },
+      cancelled: {
+        color: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-red-50 dark:bg-red-900/20',
+        borderColor: 'border-red-200 dark:border-red-800',
+        label: 'Cancelled'
+      }
+    };
+    return configs[status as keyof typeof configs] || configs.pending;
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-100 text-red-800';
-      case 'high':
-        return 'bg-orange-100 text-orange-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getPriorityConfig = (priority: string) => {
+    const configs = {
+      urgent: { color: 'text-red-700 dark:text-red-300', bgColor: 'bg-red-100 dark:bg-red-900/30', label: 'Urgent', icon: '🔥' },
+      high: { color: 'text-orange-700 dark:text-orange-300', bgColor: 'bg-orange-100 dark:bg-orange-900/30', label: 'High', icon: '⬆️' },
+      medium: { color: 'text-yellow-700 dark:text-yellow-300', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30', label: 'Medium', icon: '➡️' },
+      low: { color: 'text-green-700 dark:text-green-300', bgColor: 'bg-green-100 dark:bg-green-900/30', label: 'Low', icon: '⬇️' }
+    };
+    return configs[priority as keyof typeof configs] || configs.medium;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  if (loading) {
+  // Loading state
+  if (taskLoading) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        <Clock className="w-16 h-16 mx-auto mb-4 text-gray-300 animate-pulse" />
-        <p>Loading task details...</p>
+      <div className="space-y-8">
+        <div className="flex items-center justify-center py-16">
+          <Loader className="w-8 h-8 text-primary animate-spin mr-3" />
+          <span className="text-gray-600 dark:text-gray-400">Loading task details...</span>
+        </div>
+        
+        {/* Loading skeleton */}
+        <div className="space-y-6">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!task) {
+  // Error or not found state
+  if (taskError || !task) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        <AlertCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-        <p>Task not found.</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center py-16"
+      >
+        <div className="w-24 h-24 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <AlertCircle className="w-12 h-12 text-red-500" />
+        </div>
+        <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Task not found</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          The task you're looking for doesn't exist or has been deleted.
+        </p>
+        <button
+          onClick={() => navigate('/tasks')}
+          className="px-6 py-3 bg-primary hover:bg-primary-700 text-white font-medium rounded-xl transition-colors"
+        >
+          Back to Tasks
+        </button>
+      </motion.div>
     );
   }
+
+  const statusConfig = getStatusConfig(task.status);
+  const priorityConfig = getPriorityConfig(task.priority);
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center space-x-2 text-sm text-gray-600">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+    <div className="space-y-8">
+      {/* Breadcrumb Navigation */}
+      <motion.nav
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center space-x-2 text-sm"
+      >
+        <Link
+          to="/"
+          className="flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back
-        </button>
-        <span>/</span>
-        <Link to="/tasks" className="hover:text-gray-900 transition-colors">
+          <Home className="w-4 h-4" />
+        </Link>
+        <ChevronRight className="w-4 h-4 text-gray-400" />
+        <Link
+          to="/tasks"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        >
           Tasks
         </Link>
         {project && (
           <>
-            <span>/</span>
-            <Link 
-              to={`/projects/${project.id}`} 
-              className="flex items-center hover:text-gray-900 transition-colors"
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <Link
+              to={`/projects/${project.id}`}
+              className="flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               <FolderOpen className="w-4 h-4 mr-1" />
               {project.title}
             </Link>
           </>
         )}
-        <span>/</span>
-        <span className="text-gray-900 font-medium">{task.title}</span>
-      </div>
+        <ChevronRight className="w-4 h-4 text-gray-400" />
+        <span className="text-gray-900 dark:text-white font-medium">{task.title}</span>
+      </motion.nav>
 
       {/* Task Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {getStatusIcon(task.status)}
-          <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(task.status)}`}>
-            {task.status.replace('_', ' ')}
-          </span>
-          <span className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(task.priority)}`}>
-            {task.priority}
-          </span>
-        </div>
-      </div>
-
-      {/* Task Details */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div className="space-y-6">
-            {task.description && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
-                <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
-              </div>
-            )}
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Task Information</h3>
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <User className="w-4 h-4 mr-3 text-gray-400" />
-                  <span className="text-gray-600">Assignee: </span>
-                  <span className="ml-2 font-medium">
-                    {task.assignee_name || 'Unassigned'}
-                  </span>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden"
+      >
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full"></div>
+        <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white/5 rounded-full"></div>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="mb-6 lg:mb-0">
+              <div className="flex items-center space-x-4 mb-4">
+                {getStatusIcon(task.status)}
+                <div>
+                  <h1 className="text-3xl lg:text-4xl font-medium mb-2">{task.title}</h1>
+                  <p className="text-blue-100 text-lg">Task Details & Information</p>
                 </div>
-                <div className="flex items-center">
-                  <User className="w-4 h-4 mr-3 text-gray-400" />
-                  <span className="text-gray-600">Created by: </span>
-                  <span className="ml-2 font-medium">
-                    {task.creator_name || 'Unknown'}
-                  </span>
-                </div>
-                {task.project_name && (
-                  <div className="flex items-center">
-                    <FolderOpen className="w-4 h-4 mr-3 text-gray-400" />
-                    <span className="text-gray-600">Project: </span>
-                    <Link 
-                      to={`/projects/${task.project_id}`}
-                      className="ml-2 font-medium text-blue-600 hover:text-blue-800"
-                    >
-                      {task.project_name}
-                    </Link>
-                  </div>
-                )}
-                {task.due_date && (
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-3 text-gray-400" />
-                    <span className="text-gray-600">Due date: </span>
-                    <span className="ml-2 font-medium">{formatDate(task.due_date)}</span>
-                  </div>
-                )}
-                <div className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-3 text-gray-400" />
-                  <span className="text-gray-600">Created: </span>
-                  <span className="ml-2 font-medium">{formatDate(task.created_at)}</span>
-                </div>
-                {task.completed_at && (
-                  <div className="flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-3 text-green-500" />
-                    <span className="text-gray-600">Completed: </span>
-                    <span className="ml-2 font-medium text-green-600">{formatDate(task.completed_at)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Task Properties</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className={`px-2 py-1 text-sm font-medium rounded-full ${getStatusColor(task.status)}`}>
-                    {task.status.replace('_', ' ')}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Priority:</span>
-                  <span className={`px-2 py-1 text-sm font-medium rounded-full ${getPriorityColor(task.priority)}`}>
-                    {task.priority}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Private:</span>
-                  <span className={`px-2 py-1 text-sm font-medium rounded-full ${task.is_private ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                    {task.is_private ? 'Yes' : 'No'}
-                  </span>
-                </div>
-                {task.position && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Position in Project:</span>
-                    <span className="font-medium">{task.position}</span>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Actions */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Actions</h3>
-              <div className="space-y-2">
-                <button
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+              {/* Status & Priority Badges */}
+              <div className="flex space-x-3">
+                <span className={`px-4 py-2 text-sm font-medium rounded-xl bg-white/20 text-white border border-white/30`}>
+                  {statusConfig.label}
+                </span>
+                <span className={`px-4 py-2 text-sm font-medium rounded-xl bg-white/20 text-white border border-white/30 flex items-center space-x-2`}>
+                  <span>{priorityConfig.icon}</span>
+                  <span>{priorityConfig.label}</span>
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-2">
+                <motion.button
                   onClick={() => navigate(`/tasks/${task.id}/edit`)}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center px-4 py-2 bg-white text-primary font-medium rounded-xl hover:bg-primary-50 transition-colors shadow-lg"
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Task
-                </button>
+                </motion.button>
                 {project && (
                   <Link
                     to={`/projects/${project.id}`}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
+                    className="flex items-center px-4 py-2 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors border border-white/30"
                   >
                     <FolderOpen className="w-4 h-4 mr-2" />
                     View Project
@@ -285,10 +259,28 @@ const TaskDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+      </motion.div>
+
+      {/* Task Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Task Information Card */}
+        <TaskInfoCard task={task} project={project} />
+        
+        {/* Task Properties Card */}
+        <TaskPropertiesCard 
+          task={task} 
+          onEdit={() => navigate(`/tasks/${task.id}/edit`)} 
+        />
       </div>
 
       {/* Comments Section */}
-      <CommentsSection taskId={task.id} />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <CommentsSection taskId={task.id} />
+      </motion.div>
     </div>
   );
 };

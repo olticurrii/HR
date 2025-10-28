@@ -61,7 +61,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onAddEmployee}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium text-sm shadow-sm hover:shadow-md transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium text-sm shadow-sm hover:shadow-md transition-all"
           >
             <Plus className="w-4 h-4" />
             Add Employee

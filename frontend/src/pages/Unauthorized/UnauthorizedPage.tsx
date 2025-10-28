@@ -15,7 +15,7 @@ const UnauthorizedPage: React.FC = () => {
             </div>
           </div>
           
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-medium text-gray-900 mb-4">
             Access Denied
           </h1>
           

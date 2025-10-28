@@ -117,7 +117,7 @@ const FeedbackCard: React.FC = () => {
                     {feedback.keywords.map((keyword, index) => (
                       <span
                         key={index}
-                        className="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded"
+                        className="px-2 py-0.5 text-xs bg-primary-50 text-blue-700 rounded"
                       >
                         {keyword}
                       </span>
@@ -137,7 +137,7 @@ const FeedbackCard: React.FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">My Feedback</h2>
+      <h2 className="text-xl font-medium mb-6">My Feedback</h2>
 
       {/* Tabs */}
       <div className="flex space-x-4 mb-6 border-b">
@@ -145,7 +145,7 @@ const FeedbackCard: React.FC = () => {
           onClick={() => setActiveTab('received')}
           className={`pb-2 px-1 font-medium ${
             activeTab === 'received'
-              ? 'border-b-2 border-blue-600 text-blue-600'
+              ? 'border-b-2 border-blue-600 text-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -155,7 +155,7 @@ const FeedbackCard: React.FC = () => {
           onClick={() => setActiveTab('sent')}
           className={`pb-2 px-1 font-medium ${
             activeTab === 'sent'
-              ? 'border-b-2 border-blue-600 text-blue-600'
+              ? 'border-b-2 border-blue-600 text-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >

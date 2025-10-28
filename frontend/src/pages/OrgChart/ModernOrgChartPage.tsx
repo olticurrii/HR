@@ -287,7 +287,7 @@ const ModernOrgChartPage: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Loading organization chart...</p>
         </motion.div>
       </div>

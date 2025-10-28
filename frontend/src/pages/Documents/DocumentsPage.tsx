@@ -5,7 +5,7 @@ const DocumentsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+        <h1 className="text-2xl font-medium text-gray-900 flex items-center">
           <FileText className="w-6 h-6 mr-2" />
           Documents
         </h1>

@@ -158,7 +158,7 @@ const ProfilePage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+              <h1 className="text-3xl font-medium text-gray-900">My Profile</h1>
               <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
             </div>
             <div>
@@ -178,7 +178,7 @@ const ProfilePage: React.FC = () => {
                       onClick={() => setActiveSection(section.id)}
                       className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
                         activeSection === section.id
-                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          ? 'bg-primary-50 text-blue-700 font-medium'
                           : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
