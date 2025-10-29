@@ -135,7 +135,7 @@ async def universal_search(
                 metadata={
                     'status': task.status,
                     'priority': task.priority,
-                    'due_date': task.due_date.isoformat() if task.due_date else None
+                    'due_date': task.due_date.isoformat() if task.due_date and hasattr(task.due_date, 'isoformat') else str(task.due_date) if task.due_date else None
                 },
                 relevance_score=relevance
             ))
