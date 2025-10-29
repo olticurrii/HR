@@ -145,27 +145,27 @@ async def universal_search(
     if 'project' in search_types:
         projects = db.query(Project).filter(
             or_(
-                Project.name.ilike(search_pattern),
+                Project.title.ilike(search_pattern),
                 Project.description.ilike(search_pattern)
             )
         ).limit(10).all()
         
         for project in projects:
             relevance = max(
-                calculate_relevance(project.name, q),
+                calculate_relevance(project.title, q),
                 calculate_relevance(project.description or '', q)
             )
             
             results.append(SearchResult(
                 id=project.id,
                 type='project',
-                title=project.name,
-                subtitle=f'Status: {project.status}',
+                title=project.title,
+                subtitle='Project',
                 description=project.description[:100] if project.description else None,
                 icon='project',
                 url=f'/projects/{project.id}',
                 metadata={
-                    'status': project.status
+                    'created_at': project.created_at.isoformat() if project.created_at else None
                 },
                 relevance_score=relevance
             ))
