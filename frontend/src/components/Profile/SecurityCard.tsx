@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Lock, Key, Monitor, Shield, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { UserSession } from '../../services/profileService';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 interface SecurityCardProps {
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
@@ -22,6 +25,22 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
   });
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'sessions') {
@@ -81,7 +100,6 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
     if (window.confirm('Are you sure you want to revoke all sessions? You will need to log in again.')) {
       try {
         await onRevokeSession(undefined, true);
-        // User will be logged out
       } catch (error) {
         alert('Failed to revoke all sessions');
       }
@@ -101,49 +119,109 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
     return new Date(dateString).toLocaleString();
   };
 
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-medium mb-6">Security</h2>
+  // Theme colors
+  const textColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  const subTextColor = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  const inputBg = isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50];
+  const inputBorder = isDark ? TRAXCIS_COLORS.secondary[600] : TRAXCIS_COLORS.secondary[300];
+  const tabContainerBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const inactiveText = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+  const hoverBg = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[100];
+  const sessionBg = isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50];
 
-      {/* Tabs */}
-      <div className="flex space-x-4 mb-6 border-b">
-        <button
-          onClick={() => setActiveTab('password')}
-          className={`pb-2 px-1 font-medium ${
-            activeTab === 'password'
-              ? 'border-b-2 border-blue-600 text-primary'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Password
-        </button>
-        <button
-          onClick={() => setActiveTab('sessions')}
-          className={`pb-2 px-1 font-medium ${
-            activeTab === 'sessions'
-              ? 'border-b-2 border-blue-600 text-primary'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Sessions
-        </button>
-        <button
-          onClick={() => setActiveTab('2fa')}
-          className={`pb-2 px-1 font-medium ${
-            activeTab === '2fa'
-              ? 'border-b-2 border-blue-600 text-primary'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Two-Factor Auth
-        </button>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        backgroundColor: cardBg,
+        borderRadius: '16px',
+        boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+        border: `1px solid ${cardBorder}`,
+        padding: '24px',
+        fontFamily: "'Outfit', sans-serif",
+      }}
+    >
+      <h2 style={{
+        fontSize: '18px',
+        fontWeight: '600',
+        marginBottom: '20px',
+        color: textColor,
+      }}>
+        Security
+      </h2>
+
+      {/* Sub-tabs */}
+      <div style={{
+        backgroundColor: tabContainerBg,
+        borderRadius: '12px',
+        padding: '6px',
+        marginBottom: '24px',
+        border: `1px solid ${cardBorder}`,
+      }}>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {[
+            { id: 'password' as const, label: 'Password', icon: Key },
+            { id: 'sessions' as const, label: 'Sessions', icon: Monitor },
+            { id: '2fa' as const, label: 'Two-Factor', icon: Shield },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            const TabIcon = tab.icon;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontWeight: '500',
+                  fontSize: '13px',
+                  transition: 'all 0.2s ease',
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: isActive ? TRAXCIS_COLORS.primary.DEFAULT : 'transparent',
+                  color: isActive ? '#FFFFFF' : inactiveText,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = hoverBg;
+                    e.currentTarget.style.color = TRAXCIS_COLORS.primary.DEFAULT;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = inactiveText;
+                  }
+                }}
+              >
+                <TabIcon style={{ width: '14px', height: '14px' }} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Password Tab */}
       {activeTab === 'password' && (
-        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+        <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: textColor,
+              marginBottom: '6px',
+            }}>
               Current Password
             </label>
             <input
@@ -153,12 +231,34 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
                 setPasswordForm({ ...passwordForm, current_password: e.target.value })
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: `1px solid ${inputBorder}`,
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontFamily: "'Outfit', sans-serif",
+                backgroundColor: inputBg,
+                color: textColor,
+              }}
+              onFocus={(e) => {
+                e.target.style.outline = `2px solid ${TRAXCIS_COLORS.primary.DEFAULT}`;
+                e.target.style.outlineOffset = '2px';
+              }}
+              onBlur={(e) => {
+                e.target.style.outline = 'none';
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: textColor,
+              marginBottom: '6px',
+            }}>
               New Password
             </label>
             <input
@@ -169,15 +269,37 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
               }
               required
               minLength={8}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: `1px solid ${inputBorder}`,
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontFamily: "'Outfit', sans-serif",
+                backgroundColor: inputBg,
+                color: textColor,
+              }}
+              onFocus={(e) => {
+                e.target.style.outline = `2px solid ${TRAXCIS_COLORS.primary.DEFAULT}`;
+                e.target.style.outlineOffset = '2px';
+              }}
+              onBlur={(e) => {
+                e.target.style.outline = 'none';
+              }}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p style={{ fontSize: '12px', color: subTextColor, marginTop: '4px' }}>
               Must be at least 8 characters long
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: textColor,
+              marginBottom: '6px',
+            }}>
               Confirm New Password
             </label>
             <input
@@ -187,13 +309,42 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
                 setPasswordForm({ ...passwordForm, confirm_password: e.target.value })
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: `1px solid ${inputBorder}`,
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontFamily: "'Outfit', sans-serif",
+                backgroundColor: inputBg,
+                color: textColor,
+              }}
+              onFocus={(e) => {
+                e.target.style.outline = `2px solid ${TRAXCIS_COLORS.primary.DEFAULT}`;
+                e.target.style.outlineOffset = '2px';
+              }}
+              onBlur={(e) => {
+                e.target.style.outline = 'none';
+              }}
             />
           </div>
 
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            style={{
+              padding: '10px 20px',
+              backgroundColor: TRAXCIS_COLORS.primary.DEFAULT,
+              color: '#FFFFFF',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s ease',
+              alignSelf: 'flex-start',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary[700]}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary.DEFAULT}
           >
             Change Password
           </button>
@@ -204,56 +355,106 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
       {activeTab === 'sessions' && (
         <div>
           {loading ? (
-            <p className="text-gray-500">Loading sessions...</p>
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                border: `3px solid ${cardBorder}`,
+                borderTop: `3px solid ${TRAXCIS_COLORS.primary.DEFAULT}`,
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto 12px',
+              }} />
+              <p style={{ color: subTextColor, fontSize: '14px' }}>Loading sessions...</p>
+            </div>
           ) : sessions.length === 0 ? (
-            <p className="text-gray-500">No active sessions found.</p>
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <Monitor style={{ width: '48px', height: '48px', margin: '0 auto 12px', color: subTextColor, opacity: 0.3 }} />
+              <p style={{ color: subTextColor, fontSize: '14px' }}>No active sessions found.</p>
+            </div>
           ) : (
             <>
-              <div className="space-y-3 mb-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
                 {sessions.map((session) => (
-                  <div
+                  <motion.div
                     key={session.id}
-                    className={`p-4 border rounded-lg ${
-                      session.is_current ? 'border-primary bg-primary-50' : 'border-gray-200'
-                    }`}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      padding: '16px',
+                      border: session.is_current 
+                        ? `2px solid ${TRAXCIS_COLORS.primary.DEFAULT}`
+                        : `1px solid ${cardBorder}`,
+                      borderRadius: '8px',
+                      backgroundColor: session.is_current
+                        ? (isDark ? TRAXCIS_COLORS.primary[900] : TRAXCIS_COLORS.primary[50])
+                        : sessionBg,
+                    }}
                   >
-                    <div className="flex justify-between items-start">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-900">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <Monitor style={{ width: '16px', height: '16px', color: subTextColor }} />
+                          <span style={{ fontSize: '14px', fontWeight: '500', color: textColor }}>
                             {session.device_info || 'Unknown Device'}
-                          </p>
+                          </span>
                           {session.is_current && (
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            <span style={{
+                              fontSize: '11px',
+                              padding: '2px 8px',
+                              backgroundColor: TRAXCIS_COLORS.primary.DEFAULT,
+                              color: '#FFFFFF',
+                              borderRadius: '4px',
+                              fontWeight: '600',
+                            }}>
                               Current
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p style={{ fontSize: '13px', color: subTextColor, marginBottom: '2px' }}>
                           IP: {session.ip_address || 'Unknown'}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p style={{ fontSize: '12px', color: subTextColor }}>
                           Created: {formatDate(session.created_at)}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p style={{ fontSize: '12px', color: subTextColor }}>
                           Last seen: {formatDate(session.last_seen)}
                         </p>
                       </div>
                       {!session.is_current && (
                         <button
                           onClick={() => handleRevokeSession(session.id)}
-                          className="text-sm text-red-600 hover:text-red-800"
+                          style={{
+                            fontSize: '13px',
+                            color: TRAXCIS_COLORS.status.error,
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontWeight: '500',
+                          }}
                         >
                           Revoke
                         </button>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               <button
                 onClick={handleRevokeAll}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: TRAXCIS_COLORS.status.error,
+                  color: '#FFFFFF',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#DC2626'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.status.error}
               >
                 Revoke All Sessions
               </button>
@@ -265,23 +466,47 @@ const SecurityCard: React.FC<SecurityCardProps> = ({
       {/* 2FA Tab */}
       {activeTab === '2fa' && (
         <div>
-          <p className="text-gray-700 mb-4">
+          <p style={{
+            fontSize: '14px',
+            color: textColor,
+            marginBottom: '16px',
+            lineHeight: '1.6',
+          }}>
             Two-factor authentication adds an extra layer of security to your account.
           </p>
           <button
             onClick={handle2FAToggle}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            style={{
+              padding: '10px 20px',
+              backgroundColor: TRAXCIS_COLORS.primary.DEFAULT,
+              color: '#FFFFFF',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s ease',
+              marginBottom: '12px',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary[700]}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary.DEFAULT}
           >
             Enable Two-Factor Authentication
           </button>
-          <p className="text-sm text-gray-500 mt-3">
+          <p style={{
+            fontSize: '13px',
+            color: subTextColor,
+            padding: '12px',
+            backgroundColor: isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[100],
+            borderRadius: '6px',
+            border: `1px solid ${cardBorder}`,
+          }}>
             Note: 2FA is currently not implemented. This is a placeholder for future functionality.
           </p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
 export default SecurityCard;
-

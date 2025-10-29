@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Users, AlertCircle, ChevronDown, ZoomIn, ZoomOut, RotateCcw, Layout, LayoutGrid } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Network, Users, AlertCircle, Layout, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgChartResponse } from '../../services/orgchartService';
@@ -9,7 +10,10 @@ import departmentService from '../../services/departmentService';
 import { settingsService, OrganizationSettings } from '../../services/settingsService';
 import DraggableOrgChart from '../../components/orgchart/DraggableOrgChart';
 import UserProfileModal from '../../components/orgchart/UserProfileModal';
+import ZoomControls from '../../components/orgchart/ZoomControls';
+import DepartmentFilter from '../../components/orgchart/DepartmentFilter';
 import toast from 'react-hot-toast';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 const OrgChartPage: React.FC = () => {
   const { user } = useAuth();
@@ -21,15 +25,30 @@ const OrgChartPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [isDark, setIsDark] = useState(false);
   
   // Persistent view state (survives data refresh)
-  // Start with a reasonable zoom to see the org chart
   const [persistentZoom, setPersistentZoom] = useState<number>(0.6);
   const [persistentPan, setPersistentPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   
   // Organization settings
   const [orgSettings, setOrgSettings] = useState<OrganizationSettings | null>(null);
   const [isCompactView, setIsCompactView] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -86,11 +105,9 @@ const OrgChartPage: React.FC = () => {
     console.log('🔄 [OrgChartPage] handleReassign called:', { userId, newManagerId, newDepartmentId });
     
     try {
-      // When assigning to a new manager, also get that manager's department
       let targetDeptId = newDepartmentId;
       
       if (newManagerId && !newDepartmentId) {
-        // Find the manager in the org data to get their department
         const findUserInTree = (users: any[]): any => {
           for (const u of users) {
             if (u.id === newManagerId.toString()) return u;
@@ -104,7 +121,6 @@ const OrgChartPage: React.FC = () => {
         
         const manager = findUserInTree([...orgData.assigned, ...orgData.unassigned]);
         if (manager && manager.department) {
-          // Find the department ID by name
           const dept = departments.find(d => d.name === manager.department);
           if (dept) {
             targetDeptId = dept.id;
@@ -122,14 +138,13 @@ const OrgChartPage: React.FC = () => {
       console.log('✅ [OrgChartPage] Backend call successful, reloading data...');
       toast.success('Employee reassigned successfully');
       
-      // Reload data to reflect changes
       await loadData();
       console.log('✅ [OrgChartPage] Data reloaded successfully');
     } catch (error: any) {
       console.error('❌ [OrgChartPage] Error reassigning user:', error);
       const errorMessage = error.response?.data?.detail || 'Failed to reassign user';
       toast.error(errorMessage);
-      throw error; // Re-throw to let the component handle optimistic updates
+      throw error;
     }
   };
 
@@ -141,18 +156,16 @@ const OrgChartPage: React.FC = () => {
         new_department_id: departmentId
       });
       
-      // Reload data to reflect changes
       await loadData();
     } catch (error: any) {
       console.error('Error moving user to department:', error);
       const errorMessage = error.response?.data?.detail || 'Failed to move user to department';
       toast.error(errorMessage);
-      throw error; // Re-throw to let the component handle optimistic updates
+      throw error;
     }
   };
 
   const handleUserClick = (user: any) => {
-    // Navigate to employee profile page
     navigate(`/people/${user.id}`);
   };
 
@@ -174,10 +187,9 @@ const OrgChartPage: React.FC = () => {
     return allUsers;
   };
 
-  // Get user's subtree (for manager permission check)
   const getUserSubtree = (userId: number): Set<string> => {
     const subtree = new Set<string>();
-    subtree.add(userId.toString()); // Include self
+    subtree.add(userId.toString());
     
     const collectDescendants = (users: any[]) => {
       users.forEach(user => {
@@ -188,7 +200,6 @@ const OrgChartPage: React.FC = () => {
       });
     };
     
-    // Find user's node in the tree
     const findUserNode = (users: any[]): any | null => {
       for (const u of users) {
         if (u.id === userId.toString()) return u;
@@ -208,18 +219,11 @@ const OrgChartPage: React.FC = () => {
     return subtree;
   };
 
-  // Check if current user can drag a specific node
   const canDragNode = (nodeId: string): boolean => {
-    // If manager subtree edit is disabled, allow all (original behavior)
     if (!orgSettings?.orgchart_manager_subtree_edit) return true;
-    
-    // Admins can drag anyone
     if (user?.is_admin || user?.role === 'admin') return true;
-    
-    // Non-managers cannot drag
     if (user?.role !== 'manager') return false;
     
-    // Managers can only drag nodes in their subtree
     const subtree = getUserSubtree(user.id);
     return subtree.has(nodeId);
   };
@@ -236,184 +240,279 @@ const OrgChartPage: React.FC = () => {
     setPersistentZoom(0.6);
   };
 
-  // Permission checks
+  // Theme colors
+  const textColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  const subTextColor = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  const instructionsBg = isDark ? TRAXCIS_COLORS.primary[900] : TRAXCIS_COLORS.primary[50];
+  const instructionsBorder = isDark ? TRAXCIS_COLORS.primary[700] : TRAXCIS_COLORS.primary[200];
+  const instructionsText = isDark ? TRAXCIS_COLORS.primary[100] : TRAXCIS_COLORS.primary[900];
+
   const canView = user && (user.is_admin || user.job_role?.toLowerCase().includes('manager'));
-  // Allow admins and managers to drag employees
   const canDrag = user && (user.is_admin || user.job_role?.toLowerCase().includes('manager') || user.job_role?.toLowerCase().includes('ceo'));
 
   if (!canView) {
     return (
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: "'Outfit', sans-serif" }}>
         <div>
-          <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
-            <span className="flex items-center">
-              <Network className="w-6 h-6 mr-2" />
-              Organization Chart
-            </span>
-            <span className="accent-line mt-2"></span>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '500',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <Network style={{ width: '28px', height: '28px' }} />
+            Organization Chart
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 font-light">View and manage your organization structure</p>
+          <p style={{ color: subTextColor, fontWeight: '300', marginTop: '8px', fontSize: '15px' }}>
+            View and manage your organization structure
+          </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-center text-gray-500">
-            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium mb-2">Access Denied</h3>
-            <p className="text-sm">You don't have permission to view the organization chart</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: '16px',
+            boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${cardBorder}`,
+            padding: '64px',
+          }}
+        >
+          <div style={{ textAlign: 'center', color: subTextColor }}>
+            <AlertCircle style={{ width: '64px', height: '64px', margin: '0 auto 16px', opacity: 0.3 }} />
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: textColor }}>
+              Access Denied
+            </h3>
+            <p style={{ fontSize: '14px' }}>
+              You don't have permission to view the organization chart
+            </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: "'Outfit', sans-serif" }}>
         <div>
-          <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
-            <span className="flex items-center">
-              <Network className="w-6 h-6 mr-2" />
-              Organization Chart
-            </span>
-            <span className="accent-line mt-2"></span>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '500',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <Network style={{ width: '28px', height: '28px' }} />
+            Organization Chart
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 font-light">View and manage your organization structure</p>
+          <p style={{ color: subTextColor, fontWeight: '300', marginTop: '8px', fontSize: '15px' }}>
+            View and manage your organization structure
+          </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-center text-gray-500">
-            <Network className="w-16 h-16 mx-auto mb-4 text-gray-300 animate-pulse" />
-            <h3 className="text-lg font-medium mb-2">Loading organization chart...</h3>
-            <p className="text-sm">Please wait while we load the data</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: '16px',
+            boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${cardBorder}`,
+            padding: '64px',
+          }}
+        >
+          <div style={{ textAlign: 'center', color: subTextColor }}>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              style={{ display: 'inline-block' }}
+            >
+              <Network style={{ width: '64px', height: '64px', margin: '0 auto 16px', opacity: 0.3 }} />
+            </motion.div>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: textColor }}>
+              Loading organization chart...
+            </h3>
+            <p style={{ fontSize: '14px' }}>
+              Please wait while we load the data
+            </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: "'Outfit', sans-serif" }}>
         <div>
-          <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
-            <span className="flex items-center">
-              <Network className="w-6 h-6 mr-2" />
-              Organization Chart
-            </span>
-            <span className="accent-line mt-2"></span>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '500',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <Network style={{ width: '28px', height: '28px' }} />
+            Organization Chart
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 font-light">View and manage your organization structure</p>
+          <p style={{ color: subTextColor, fontWeight: '300', marginTop: '8px', fontSize: '15px' }}>
+            View and manage your organization structure
+          </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-center text-gray-500">
-            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-300" />
-            <h3 className="text-lg font-medium mb-2">Error Loading Data</h3>
-            <p className="text-sm mb-4">{error}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: '16px',
+            boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${cardBorder}`,
+            padding: '64px',
+          }}
+        >
+          <div style={{ textAlign: 'center', color: subTextColor }}>
+            <AlertCircle style={{ width: '64px', height: '64px', margin: '0 auto 16px', color: TRAXCIS_COLORS.status.error, opacity: 0.6 }} />
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: textColor }}>
+              Error Loading Data
+            </h3>
+            <p style={{ fontSize: '14px', marginBottom: '24px' }}>{error}</p>
             <button
               onClick={loadData}
-              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              style={{
+                padding: '10px 20px',
+                backgroundColor: TRAXCIS_COLORS.primary.DEFAULT,
+                color: '#FFFFFF',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: "'Outfit', sans-serif",
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary[700]}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary.DEFAULT}
             >
               Try Again
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: "'Outfit', sans-serif" }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="text-2xl font-medium text-gray-900 flex items-center">
-            <Network className="w-6 h-6 mr-2" />
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '500',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <Network style={{ width: '28px', height: '28px' }} />
             Organization Chart
           </h1>
-          <p className="text-gray-600">
+          <p style={{ color: subTextColor, fontWeight: '300', marginTop: '8px', fontSize: '15px' }}>
             {canDrag 
               ? "Drag and drop employees to reassign managers or move to departments" 
               : "View your organization structure"
             }
           </p>
         </div>
-        <div className="flex items-center space-x-4">
-          {/* Department Filter Dropdown */}
-          <div className="relative">
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-            >
-              <option value="all">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id.toString()}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-          </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Department Filter */}
+          <DepartmentFilter
+            departments={departments}
+            selected={selectedDepartment}
+            onChange={setSelectedDepartment}
+          />
           
           {/* Compact View Toggle */}
           {orgSettings?.orgchart_compact_view && (
-            <button
+            <motion.button
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               onClick={() => setIsCompactView(!isCompactView)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                isCompactView
-                  ? 'bg-blue-600 text-white border-blue-700'
-                  : 'bg-white border-gray-300 hover:bg-gray-50'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: `1px solid ${isCompactView ? TRAXCIS_COLORS.primary.DEFAULT : cardBorder}`,
+                backgroundColor: isCompactView ? TRAXCIS_COLORS.primary.DEFAULT : cardBg,
+                color: isCompactView ? '#FFFFFF' : textColor,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontFamily: "'Outfit', sans-serif",
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               title={isCompactView ? 'Switch to Detailed View' : 'Switch to Compact View'}
             >
-              {isCompactView ? <Layout className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
-              <span className="text-sm font-medium">
-                {isCompactView ? 'Detailed' : 'Compact'}
-              </span>
-            </button>
+              {isCompactView ? <Layout style={{ width: '16px', height: '16px' }} /> : <LayoutGrid style={{ width: '16px', height: '16px' }} />}
+              <span>{isCompactView ? 'Detailed' : 'Compact'}</span>
+            </motion.button>
           )}
           
           {/* Zoom Controls */}
-          <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={handleZoomOut}
-              className="p-2 hover:bg-gray-200 rounded transition-colors"
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <span className="text-sm font-medium min-w-[3rem] text-center">
-              {Math.round(persistentZoom * 100)}%
-            </span>
-            <button
-              onClick={handleZoomIn}
-              className="p-2 hover:bg-gray-200 rounded transition-colors"
-              title="Zoom In"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleResetZoom}
-              className="p-2 hover:bg-gray-200 rounded transition-colors"
-              title="Reset Zoom"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-          </div>
+          <ZoomControls
+            zoom={persistentZoom}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onReset={handleResetZoom}
+          />
         </div>
       </div>
 
-      {/* Organization Tree - Full Width with Unassigned Inside */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <Users className="w-5 h-5 mr-2" />
+      {/* Organization Tree */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          backgroundColor: cardBg,
+          borderRadius: '16px',
+          boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${cardBorder}`,
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{
+          padding: '20px 24px',
+          borderBottom: `1px solid ${cardBorder}`,
+        }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            <Users style={{ width: '20px', height: '20px' }} />
             Organization Structure
             {selectedDepartment !== 'all' && (
-              <span className="ml-2 text-sm text-gray-500">
+              <span style={{ fontSize: '14px', color: subTextColor, fontWeight: '400' }}>
                 - {departments.find(d => d.id.toString() === selectedDepartment)?.name}
               </span>
             )}
           </h2>
         </div>
-        <div className="w-full relative" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
+        <div style={{ width: '100%', position: 'relative', height: 'calc(100vh - 350px)', minHeight: '600px' }}>
           <DraggableOrgChart
             data={orgData.assigned}
             unassignedEmployees={orgData.unassigned}
@@ -429,12 +528,37 @@ const OrgChartPage: React.FC = () => {
             departments={departments}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Instructions */}
-      <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-blue-900 mb-2">Navigation & Controls</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          backgroundColor: instructionsBg,
+          border: `1px solid ${instructionsBorder}`,
+          borderRadius: '12px',
+          padding: '20px',
+        }}
+      >
+        <h3 style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: instructionsText,
+          marginBottom: '12px',
+        }}>
+          Navigation & Controls
+        </h3>
+        <ul style={{
+          fontSize: '14px',
+          color: instructionsText,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+        }}>
           <li>• Scroll or use two fingers on touchpad to zoom in/out</li>
           <li>• Click and drag the background to pan around the chart</li>
           <li>• Click on any employee card to view their profile</li>
@@ -446,7 +570,7 @@ const OrgChartPage: React.FC = () => {
             </>
           )}
         </ul>
-      </div>
+      </motion.div>
 
       {/* Profile Modal */}
       <UserProfileModal

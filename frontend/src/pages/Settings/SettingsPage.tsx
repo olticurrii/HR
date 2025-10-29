@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Settings, Clock, Save, AlertCircle, CheckCircle, MessageCircle, TrendingUp, Bell } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Settings as SettingsIcon, Clock, Save, AlertCircle, CheckCircle, X, MessageCircle, TrendingUp, Bell, Network } from 'lucide-react';
 import { settingsService, OrganizationSettings } from '../../services/settingsService';
+import ToggleSwitch from '../../components/Settings/ToggleSwitch';
+import SettingItem from '../../components/Settings/SettingItem';
+import toast from 'react-hot-toast';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 const SettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<OrganizationSettings | null>(null);
@@ -9,6 +13,9 @@ const SettingsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isDark, setIsDark] = useState(false);
+  
+  // Time Tracking
   const [allowBreaks, setAllowBreaks] = useState(true);
   const [requireDocumentation, setRequireDocumentation] = useState(false);
   
@@ -40,6 +47,21 @@ const SettingsPage: React.FC = () => {
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
   const [inappNotificationsEnabled, setInappNotificationsEnabled] = useState(true);
   const [dailySummaryEnabled, setDailySummaryEnabled] = useState(true);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     loadSettings();
@@ -115,12 +137,13 @@ const SettingsPage: React.FC = () => {
       });
       
       setSettings(updated);
+      toast.success('Settings saved successfully!');
       setSuccess('Settings saved successfully!');
-      
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to save settings');
+      const errorMsg = err.response?.data?.detail || 'Failed to save settings';
+      setError(errorMsg);
+      toast.error(errorMsg);
       console.error(err);
     } finally {
       setSaving(false);
@@ -153,975 +176,713 @@ const SettingsPage: React.FC = () => {
     settings.daily_summary_enabled !== dailySummaryEnabled
   );
 
+  // Theme colors
+  const textColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  const subTextColor = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  const sectionBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const dividerColor = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: "'Outfit', sans-serif" }}>
+        <div>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '500',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <SettingsIcon style={{ width: '28px', height: '28px' }} />
+            Organization Settings
+          </h1>
+          <p style={{ color: subTextColor, fontWeight: '300', marginTop: '8px', fontSize: '15px' }}>
+            Configure system settings and preferences (Admin Only)
+          </p>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: '16px',
+            boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${cardBorder}`,
+            padding: '64px',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderLeft: `3px solid ${cardBorder}`,
+            borderRight: `3px solid ${cardBorder}`,
+            borderBottom: `3px solid ${cardBorder}`,
+            borderTop: `3px solid ${TRAXCIS_COLORS.primary.DEFAULT}`,
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px',
+          }} />
+          <p style={{ color: subTextColor, fontSize: '14px' }}>Loading settings...</p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: "'Outfit', sans-serif" }}>
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="gradient-primary rounded-3xl p-8 text-white relative overflow-hidden"
-      >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full"></div>
-        <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white/5 rounded-full"></div>
-        
-        <div className="relative z-10">
-          <h1 className="text-3xl lg:text-4xl font-medium mb-2 flex flex-col">
-            <span className="flex items-center">
-              <Settings className="w-8 h-8 mr-3" />
-              Organization Settings
-            </span>
-            <span className="accent-line mt-2 border-white/50"></span>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '500',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '8px',
+          }}>
+            <SettingsIcon style={{ width: '28px', height: '28px' }} />
+            Organization Settings
           </h1>
-          <p className="text-primary-100 text-lg font-normal">
+          <p style={{ color: subTextColor, fontWeight: '300', fontSize: '15px' }}>
             Configure system settings and preferences (Admin Only)
           </p>
         </div>
-      </motion.div>
-
-      {/* Alerts */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center">
-          <AlertCircle className="w-5 h-5 mr-2" />
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center">
-          <CheckCircle className="w-5 h-5 mr-2" />
-          {success}
-        </div>
-      )}
-
-      {/* Time Tracking Settings */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900 flex items-center">
-            <Clock className="w-5 h-5 mr-2" />
-            Time Tracking
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Configure time tracking behavior for all employees
-          </p>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Allow Breaks Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="allow-breaks" className="text-base font-medium text-gray-900">
-                Allow Employee Breaks
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                When enabled, employees can start and end breaks during their shifts. 
-                When disabled, break controls will be hidden and break endpoints will return 403.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setAllowBreaks(!allowBreaks)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  allowBreaks ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={allowBreaks}
-                id="allow-breaks"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    allowBreaks ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Status Indicator */}
-          <div className={`p-4 rounded-lg ${allowBreaks ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-            <div className="flex items-start">
-              <div className={`flex-shrink-0 ${allowBreaks ? 'text-green-600' : 'text-red-600'}`}>
-                {allowBreaks ? (
-                  <CheckCircle className="w-5 h-5" />
-                ) : (
-                  <AlertCircle className="w-5 h-5" />
-                )}
-              </div>
-              <div className="ml-3">
-                <h3 className={`text-sm font-medium ${allowBreaks ? 'text-green-800' : 'text-red-800'}`}>
-                  {allowBreaks ? 'Breaks Enabled' : 'Breaks Disabled'}
-                </h3>
-                <p className={`text-sm mt-1 ${allowBreaks ? 'text-green-700' : 'text-red-700'}`}>
-                  {allowBreaks
-                    ? 'Employees can start and end breaks in the Time Tracking module.'
-                    : 'Break controls are hidden and break API endpoints will return 403 Forbidden.'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-6"></div>
-
-          {/* Require Documentation Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="require-documentation" className="text-base font-medium text-gray-900">
-                Require Daily Documentation
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                When enabled, employees must submit a work summary when clocking out. 
-                The system will show a modal requiring non-empty text before completing clock-out.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setRequireDocumentation(!requireDocumentation)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  requireDocumentation ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={requireDocumentation}
-                id="require-documentation"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    requireDocumentation ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Documentation Status Indicator */}
-          <div className={`p-4 rounded-lg ${requireDocumentation ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50 border border-gray-200'}`}>
-            <div className="flex items-start">
-              <div className={`flex-shrink-0 ${requireDocumentation ? 'text-primary' : 'text-gray-600'}`}>
-                {requireDocumentation ? (
-                  <CheckCircle className="w-5 h-5" />
-                ) : (
-                  <AlertCircle className="w-5 h-5" />
-                )}
-              </div>
-              <div className="ml-3">
-                <h3 className={`text-sm font-medium ${requireDocumentation ? 'text-blue-800' : 'text-gray-800'}`}>
-                  {requireDocumentation ? 'Documentation Required' : 'Documentation Optional'}
-                </h3>
-                <p className={`text-sm mt-1 ${requireDocumentation ? 'text-blue-700' : 'text-gray-700'}`}>
-                  {requireDocumentation
-                    ? 'Employees must provide a work summary when clocking out. Empty submissions will be rejected.'
-                    : 'Employees can clock out without providing documentation.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Organization Chart Settings */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900 flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Organization Chart Features
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Enable or disable organization chart features
-          </p>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Show Unassigned Panel */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="show-unassigned" className="text-base font-medium text-gray-900">
-                Show Unassigned Panel
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Display a panel showing employees without a manager. Allows bidirectional drag and drop.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setShowUnassignedPanel(!showUnassignedPanel)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  showUnassignedPanel ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={showUnassignedPanel}
-                id="show-unassigned"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    showUnassignedPanel ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Manager Subtree Edit */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="manager-subtree" className="text-base font-medium text-gray-900">
-                Manager Subtree Edit Only
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                When enabled, managers can only edit employees in their subtree. Admins can edit all.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setManagerSubtreeEdit(!managerSubtreeEdit)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  managerSubtreeEdit ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={managerSubtreeEdit}
-                id="manager-subtree"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    managerSubtreeEdit ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Department Colors */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="dept-colors" className="text-base font-medium text-gray-900">
-                Department Colors
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Color-code employee cards and connecting lines by department for easier visualization.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setDepartmentColors(!departmentColors)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  departmentColors ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={departmentColors}
-                id="dept-colors"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    departmentColors ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Compact View Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="compact-view" className="text-base font-medium text-gray-900">
-                Enable Compact View Toggle
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Show a toggle button to switch between detailed and compact employee cards.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setCompactView(!compactView)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  compactView ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={compactView}
-                id="compact-view"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    compactView ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Show Connecting Lines */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="show-connectors" className="text-base font-medium text-gray-900">
-                Show Connecting Lines
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Display curved SVG lines connecting managers to their direct reports.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setShowConnectors(!showConnectors)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  showConnectors ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={showConnectors}
-                id="show-connectors"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    showConnectors ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Feedback Settings */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900 flex items-center">
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Feedback System Features
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Configure feedback system behavior and enhancements
-          </p>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Allow Anonymous */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="allow-anonymous" className="text-base font-medium text-gray-900">
-                Allow Anonymous Feedback
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Users can submit feedback anonymously. Identity is hidden from non-admins.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setAllowAnonymous(!allowAnonymous)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  allowAnonymous ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={allowAnonymous}
-                id="allow-anonymous"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    allowAnonymous ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Enable Threading */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="enable-threading" className="text-base font-medium text-gray-900">
-                Enable Threaded Conversations
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Allow users to reply to feedback, creating conversation threads.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setEnableThreading(!enableThreading)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  enableThreading ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={enableThreading}
-                id="enable-threading"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    enableThreading ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Enable Moderation */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="enable-moderation" className="text-base font-medium text-gray-900 flex items-center gap-2">
-                Enable Content Moderation
-                {enableModeration && (
-                  <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded font-normal">
-                    Blocks inappropriate content
-                  </span>
-                )}
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Automatically scan and BLOCK feedback containing profanity, threats, or inappropriate content. Blocked feedback will not be saved.
-              </p>
-              {enableModeration && (
-                <p className="text-xs text-red-600 mt-1 font-medium">
-                  ⚠️ Warning: Users will receive an error if their feedback contains flagged words
-                </p>
-              )}
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setEnableModeration(!enableModeration)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  enableModeration ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={enableModeration}
-                id="enable-moderation"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    enableModeration ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Notify Managers */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="notify-managers" className="text-base font-medium text-gray-900">
-                Notify Managers on Feedback
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Automatically notify managers when their team members receive negative feedback.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setNotifyManagers(!notifyManagers)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  notifyManagers ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={notifyManagers}
-                id="notify-managers"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    notifyManagers ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200"></div>
-
-          {/* Weekly Digest */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="weekly-digest" className="text-base font-medium text-gray-900">
-                Weekly Feedback Digest
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Generate and send weekly feedback summary to administrators every Monday.
-              </p>
-            </div>
-            <div className="ml-6">
-              <button
-                type="button"
-                onClick={() => setWeeklyDigest(!weeklyDigest)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  weeklyDigest ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
-                role="switch"
-                aria-checked={weeklyDigest}
-                id="weekly-digest"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    weeklyDigest ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Module Settings */}
-        <div className="bg-white rounded-lg shadow mt-6">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2" />
-              Performance Module Settings
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Configure the performance management module and its features
-            </p>
-          </div>
-
-          <div className="p-6 space-y-6">
-            {/* Module Enabled */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="performance-enabled" className="text-base font-medium text-gray-900 flex items-center gap-2">
-                  Enable Performance Module
-                  {!performanceModuleEnabled && (
-                    <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded font-normal">
-                      Module disabled
-                    </span>
-                  )}
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Master on/off switch for the entire performance management module. When disabled, the Performance tab will be hidden.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setPerformanceModuleEnabled(!performanceModuleEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    performanceModuleEnabled ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={performanceModuleEnabled}
-                  id="performance-enabled"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      performanceModuleEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Allow Self Goals */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="allow-self-goals" className="text-base font-medium text-gray-900">
-                  Allow Self-Created Goals
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Allow employees to create their own performance goals and objectives.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setAllowSelfGoals(!allowSelfGoals)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    allowSelfGoals ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={allowSelfGoals}
-                  id="allow-self-goals"
-                  disabled={!performanceModuleEnabled}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      allowSelfGoals ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Require Goal Approval */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="require-goal-approval" className="text-base font-medium text-gray-900">
-                  Require Goal Approval
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Self-created goals must be approved by manager before becoming active.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setRequireGoalApproval(!requireGoalApproval)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    requireGoalApproval ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={requireGoalApproval}
-                  id="require-goal-approval"
-                  disabled={!performanceModuleEnabled || !allowSelfGoals}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      requireGoalApproval ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Enable Peer Reviews */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="enable-peer-reviews" className="text-base font-medium text-gray-900">
-                  Enable Peer Reviews
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Allow employees to submit peer reviews for their colleagues.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setEnablePeerReviews(!enablePeerReviews)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    enablePeerReviews ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={enablePeerReviews}
-                  id="enable-peer-reviews"
-                  disabled={!performanceModuleEnabled}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      enablePeerReviews ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Allow Anonymous Peer */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="allow-anonymous-peer" className="text-base font-medium text-gray-900">
-                  Allow Anonymous Peer Reviews
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Allow peer reviews to be submitted anonymously for more honest feedback.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setAllowAnonymousPeer(!allowAnonymousPeer)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    allowAnonymousPeer ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={allowAnonymousPeer}
-                  id="allow-anonymous-peer"
-                  disabled={!performanceModuleEnabled || !enablePeerReviews}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      allowAnonymousPeer ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Show KPI Trends */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="show-kpi-trends" className="text-base font-medium text-gray-900">
-                  Show KPI Trend Charts
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Display KPI trend visualizations and historical data tracking.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setShowKpiTrends(!showKpiTrends)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    showKpiTrends ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={showKpiTrends}
-                  id="show-kpi-trends"
-                  disabled={!performanceModuleEnabled}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      showKpiTrends ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Top Performer Threshold */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="top-performer-threshold" className="text-base font-medium text-gray-900">
-                  Top Performer Badge Threshold
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Score threshold (0-100) for displaying top performer badge on profile ({topPerformerThreshold}%).
-                </p>
-                <div className="mt-3">
-                  <input
-                    type="range"
-                    id="top-performer-threshold"
-                    min="50"
-                    max="100"
-                    step="5"
-                    value={topPerformerThreshold}
-                    onChange={(e) => setTopPerformerThreshold(parseInt(e.target.value))}
-                    disabled={!performanceModuleEnabled}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>50%</span>
-                    <span>75%</span>
-                    <span>100%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Monthly Reports */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="monthly-reports" className="text-base font-medium text-gray-900">
-                  Generate Monthly Reports
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Automatically generate and email monthly performance summary to administrators.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setMonthlyReports(!monthlyReports)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    monthlyReports ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={monthlyReports}
-                  id="monthly-reports"
-                  disabled={!performanceModuleEnabled}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      monthlyReports ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Notification System Settings */}
-        <div className="bg-white rounded-lg shadow mt-6">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 flex items-center">
-              <Bell className="w-5 h-5 mr-2" />
-              Notification System Settings
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Configure email and in-app notifications
-            </p>
-          </div>
-
-          <div className="p-6 space-y-6">
-            {/* Email Notifications Enabled */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="email-notifications" className="text-base font-medium text-gray-900">
-                  Enable Email Notifications
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Master toggle for all email notifications. Users can still control individual notification types.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setEmailNotificationsEnabled(!emailNotificationsEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    emailNotificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={emailNotificationsEnabled}
-                  id="email-notifications"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      emailNotificationsEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* In-App Notifications Enabled */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="inapp-notifications" className="text-base font-medium text-gray-900">
-                  Enable In-App Notifications
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Show notifications in the notification bell. Users can control individual notification types in their profile.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setInappNotificationsEnabled(!inappNotificationsEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    inappNotificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={inappNotificationsEnabled}
-                  id="inapp-notifications"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      inappNotificationsEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200"></div>
-
-            {/* Daily Summary Enabled */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <label htmlFor="daily-summary" className="text-base font-medium text-gray-900">
-                  Daily Admin Summary
-                </label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Send daily digest email to administrators with system activity summary.
-                </p>
-              </div>
-              <div className="ml-6">
-                <button
-                  type="button"
-                  onClick={() => setDailySummaryEnabled(!dailySummaryEnabled)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                    dailySummaryEnabled ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  role="switch"
-                  aria-checked={dailySummaryEnabled}
-                  id="daily-summary"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      dailySummaryEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Save Button */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-          <button
+        
+        {hasChanges && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleSave}
-            disabled={!hasChanges || saving}
-            className={`flex items-center px-4 py-2 rounded-md font-medium ${
-              hasChanges && !saving
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            disabled={saving}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 20px',
+              backgroundColor: saving ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.accent.DEFAULT,
+              color: '#FFFFFF',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              border: 'none',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              boxShadow: isDark ? '0 2px 4px rgba(0, 0, 0, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!saving) {
+                e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.accent[600];
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!saving) {
+                e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.accent.DEFAULT;
+              }
+            }}
           >
             {saving ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTop: '2px solid #FFFFFF',
+                  borderRadius: '50%',
+                  animation: 'spin 0.6s linear infinite',
+                }} />
                 Saving...
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 mr-2" />
+                <Save style={{ width: '18px', height: '18px' }} />
+                Save All Settings
+              </>
+            )}
+          </motion.button>
+        )}
+      </div>
+
+      {/* Alerts */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            style={{
+              backgroundColor: '#FEE2E2',
+              border: '1px solid #FECACA',
+              color: '#991B1B',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '14px',
+            }}
+          >
+            <AlertCircle style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>{error}</span>
+            <button
+              onClick={() => setError(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#991B1B' }}
+            >
+              <X style={{ width: '18px', height: '18px' }} />
+            </button>
+          </motion.div>
+        )}
+
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            style={{
+              backgroundColor: '#D1FAE5',
+              border: '1px solid #A7F3D0',
+              color: '#065F46',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '14px',
+            }}
+          >
+            <CheckCircle style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>{success}</span>
+            <button
+              onClick={() => setSuccess(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#065F46' }}
+            >
+              <X style={{ width: '18px', height: '18px' }} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Time Tracking Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        style={{
+          backgroundColor: sectionBg,
+          borderRadius: '16px',
+          boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${cardBorder}`,
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${cardBorder}` }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '4px',
+          }}>
+            <Clock style={{ width: '20px', height: '20px' }} />
+            Time Tracking
+          </h2>
+          <p style={{ fontSize: '13px', color: subTextColor }}>
+            Configure time tracking behavior for all employees
+          </p>
+        </div>
+
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <SettingItem
+            id="allow-breaks"
+            title="Allow Employee Breaks"
+            description="When enabled, employees can start and end breaks during their shifts. When disabled, break controls will be hidden."
+            enabled={allowBreaks}
+            onChange={setAllowBreaks}
+            badge={allowBreaks ? { text: 'Breaks Enabled', color: 'green' } : { text: 'Breaks Disabled', color: 'red' }}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="require-documentation"
+            title="Require Daily Documentation"
+            description="When enabled, employees must submit a work summary when clocking out. The system will show a modal requiring non-empty text."
+            enabled={requireDocumentation}
+            onChange={setRequireDocumentation}
+            badge={requireDocumentation ? { text: 'Required', color: 'orange' } : { text: 'Optional', color: 'gray' }}
+          />
+        </div>
+      </motion.div>
+
+      {/* Organization Chart Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        style={{
+          backgroundColor: sectionBg,
+          borderRadius: '16px',
+          boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${cardBorder}`,
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${cardBorder}` }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '4px',
+          }}>
+            <Network style={{ width: '20px', height: '20px' }} />
+            Organization Chart Features
+          </h2>
+          <p style={{ fontSize: '13px', color: subTextColor }}>
+            Enable or disable organization chart features
+          </p>
+        </div>
+
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <SettingItem
+            id="show-unassigned"
+            title="Show Unassigned Panel"
+            description="Display a panel showing employees without a manager. Allows bidirectional drag and drop."
+            enabled={showUnassignedPanel}
+            onChange={setShowUnassignedPanel}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="manager-subtree"
+            title="Manager Subtree Edit Only"
+            description="When enabled, managers can only edit employees in their subtree. Admins can edit all."
+            enabled={managerSubtreeEdit}
+            onChange={setManagerSubtreeEdit}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="dept-colors"
+            title="Department Colors"
+            description="Color-code employee cards and connecting lines by department for easier visualization."
+            enabled={departmentColors}
+            onChange={setDepartmentColors}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="compact-view"
+            title="Enable Compact View Toggle"
+            description="Show a toggle button to switch between detailed and compact employee cards."
+            enabled={compactView}
+            onChange={setCompactView}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="show-connectors"
+            title="Show Connecting Lines"
+            description="Display curved SVG lines connecting managers to their direct reports."
+            enabled={showConnectors}
+            onChange={setShowConnectors}
+          />
+        </div>
+      </motion.div>
+
+      {/* Feedback System Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        style={{
+          backgroundColor: sectionBg,
+          borderRadius: '16px',
+          boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${cardBorder}`,
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${cardBorder}` }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '4px',
+          }}>
+            <MessageCircle style={{ width: '20px', height: '20px' }} />
+            Feedback System Features
+          </h2>
+          <p style={{ fontSize: '13px', color: subTextColor }}>
+            Configure feedback system behavior and enhancements
+          </p>
+        </div>
+
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <SettingItem
+            id="allow-anonymous"
+            title="Allow Anonymous Feedback"
+            description="Users can submit feedback anonymously. Identity is hidden from non-admins."
+            enabled={allowAnonymous}
+            onChange={setAllowAnonymous}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="enable-threading"
+            title="Enable Threaded Conversations"
+            description="Allow users to reply to feedback, creating conversation threads."
+            enabled={enableThreading}
+            onChange={setEnableThreading}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="enable-moderation"
+            title="Enable Content Moderation"
+            description="Automatically scan and BLOCK feedback containing profanity, threats, or inappropriate content. Blocked feedback will not be saved."
+            enabled={enableModeration}
+            onChange={setEnableModeration}
+            warning={enableModeration ? "Warning: Users will receive an error if their feedback contains flagged words" : undefined}
+            badge={enableModeration ? { text: 'Blocks inappropriate content', color: 'red' } : undefined}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="notify-managers"
+            title="Notify Managers on Feedback"
+            description="Automatically notify managers when their team members receive negative feedback."
+            enabled={notifyManagers}
+            onChange={setNotifyManagers}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="weekly-digest"
+            title="Weekly Feedback Digest"
+            description="Generate and send weekly feedback summary to administrators every Monday."
+            enabled={weeklyDigest}
+            onChange={setWeeklyDigest}
+          />
+        </div>
+      </motion.div>
+
+      {/* Performance Module Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        style={{
+          backgroundColor: sectionBg,
+          borderRadius: '16px',
+          boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${cardBorder}`,
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${cardBorder}` }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '4px',
+          }}>
+            <TrendingUp style={{ width: '20px', height: '20px' }} />
+            Performance Module Settings
+          </h2>
+          <p style={{ fontSize: '13px', color: subTextColor }}>
+            Configure the performance management module and its features
+          </p>
+        </div>
+
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <SettingItem
+            id="performance-enabled"
+            title="Enable Performance Module"
+            description="Master on/off switch for the entire performance management module. When disabled, the Performance tab will be hidden."
+            enabled={performanceModuleEnabled}
+            onChange={setPerformanceModuleEnabled}
+            badge={performanceModuleEnabled ? { text: 'Module Enabled', color: 'green' } : { text: 'Module Disabled', color: 'gray' }}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="allow-self-goals"
+            title="Allow Self-Created Goals"
+            description="Allow employees to create their own performance goals and objectives."
+            enabled={allowSelfGoals}
+            onChange={setAllowSelfGoals}
+            disabled={!performanceModuleEnabled}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="require-goal-approval"
+            title="Require Goal Approval"
+            description="Self-created goals must be approved by manager before becoming active."
+            enabled={requireGoalApproval}
+            onChange={setRequireGoalApproval}
+            disabled={!performanceModuleEnabled || !allowSelfGoals}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="enable-peer-reviews"
+            title="Enable Peer Reviews"
+            description="Allow employees to submit peer reviews for their colleagues."
+            enabled={enablePeerReviews}
+            onChange={setEnablePeerReviews}
+            disabled={!performanceModuleEnabled}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="allow-anonymous-peer"
+            title="Allow Anonymous Peer Reviews"
+            description="Allow peer reviews to be submitted anonymously for more honest feedback."
+            enabled={allowAnonymousPeer}
+            onChange={setAllowAnonymousPeer}
+            disabled={!performanceModuleEnabled || !enablePeerReviews}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="show-kpi-trends"
+            title="Show KPI Trend Charts"
+            description="Display KPI trend visualizations and historical data tracking."
+            enabled={showKpiTrends}
+            onChange={setShowKpiTrends}
+            disabled={!performanceModuleEnabled}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          {/* Top Performer Threshold Slider */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '24px' }}>
+            <div style={{ flex: 1 }}>
+              <label
+                htmlFor="top-performer-threshold"
+                style={{
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  color: textColor,
+                  display: 'block',
+                  marginBottom: '4px',
+                }}
+              >
+                Top Performer Badge Threshold
+              </label>
+              <p style={{
+                fontSize: '13px',
+                color: subTextColor,
+                marginBottom: '12px',
+                lineHeight: '1.5',
+              }}>
+                Score threshold (50-100%) for displaying top performer badge on profile. Current: <strong style={{ color: TRAXCIS_COLORS.accent.DEFAULT }}>{topPerformerThreshold}%</strong>
+              </p>
+              <div>
+                <input
+                  type="range"
+                  id="top-performer-threshold"
+                  min="50"
+                  max="100"
+                  step="5"
+                  value={topPerformerThreshold}
+                  onChange={(e) => setTopPerformerThreshold(parseInt(e.target.value))}
+                  disabled={!performanceModuleEnabled}
+                  style={{
+                    width: '100%',
+                    height: '6px',
+                    borderRadius: '3px',
+                    appearance: 'none',
+                    background: `linear-gradient(to right, ${TRAXCIS_COLORS.primary.DEFAULT} 0%, ${TRAXCIS_COLORS.primary.DEFAULT} ${(topPerformerThreshold - 50) * 2}%, ${isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200]} ${(topPerformerThreshold - 50) * 2}%, ${isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200]} 100%)`,
+                    cursor: performanceModuleEnabled ? 'pointer' : 'not-allowed',
+                    opacity: performanceModuleEnabled ? 1 : 0.5,
+                  }}
+                />
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '12px',
+                  color: subTextColor,
+                  marginTop: '6px',
+                }}>
+                  <span>50%</span>
+                  <span>75%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="monthly-reports"
+            title="Generate Monthly Reports"
+            description="Automatically generate and email monthly performance summary to administrators."
+            enabled={monthlyReports}
+            onChange={setMonthlyReports}
+            disabled={!performanceModuleEnabled}
+          />
+        </div>
+      </motion.div>
+
+      {/* Notification System Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        style={{
+          backgroundColor: sectionBg,
+          borderRadius: '16px',
+          boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: `1px solid ${cardBorder}`,
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${cardBorder}` }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: textColor,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '4px',
+          }}>
+            <Bell style={{ width: '20px', height: '20px' }} />
+            Notification System Settings
+          </h2>
+          <p style={{ fontSize: '13px', color: subTextColor }}>
+            Configure email and in-app notifications
+          </p>
+        </div>
+
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <SettingItem
+            id="email-notifications"
+            title="Enable Email Notifications"
+            description="Master toggle for all email notifications. Users can still control individual notification types."
+            enabled={emailNotificationsEnabled}
+            onChange={setEmailNotificationsEnabled}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="inapp-notifications"
+            title="Enable In-App Notifications"
+            description="Show notifications in the notification bell. Users can control individual notification types in their profile."
+            enabled={inappNotificationsEnabled}
+            onChange={setInappNotificationsEnabled}
+          />
+
+          <div style={{ height: '1px', backgroundColor: dividerColor }} />
+
+          <SettingItem
+            id="daily-summary"
+            title="Daily Admin Summary"
+            description="Send daily digest email to administrators with system activity summary."
+            enabled={dailySummaryEnabled}
+            onChange={setDailySummaryEnabled}
+          />
+        </div>
+      </motion.div>
+
+      {/* Footer Save Button */}
+      {hasChanges && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            padding: '20px 24px',
+            backgroundColor: isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50],
+            borderRadius: '12px',
+            border: `1px solid ${cardBorder}`,
+          }}
+        >
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 20px',
+              backgroundColor: saving ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.accent.DEFAULT,
+              color: '#FFFFFF',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              border: 'none',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!saving) {
+                e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.accent[600];
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!saving) {
+                e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.accent.DEFAULT;
+              }
+            }}
+          >
+            {saving ? (
+              <>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTop: '2px solid #FFFFFF',
+                  borderRadius: '50%',
+                  animation: 'spin 0.6s linear infinite',
+                }} />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save style={{ width: '18px', height: '18px' }} />
                 Save All Settings
               </>
             )}
           </button>
-        </div>
-      </div>
+        </motion.div>
+      )}
     </div>
   );
 };

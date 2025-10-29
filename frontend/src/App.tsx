@@ -21,6 +21,7 @@ import ProjectDetailPage from './pages/Projects/ProjectDetailPage';
 import TimeTrackingPage from './pages/TimeTracking/TimeTrackingPage';
 import AdminTimeTrackingPage from './pages/TimeTracking/AdminTimeTrackingPage';
 import LeaveManagementPage from './pages/LeaveManagement/LeaveManagementPage';
+import OfficeBookingPage from './pages/OfficeBooking/OfficeBookingPage';
 import FeedbackPage from './pages/Feedback/FeedbackPage';
 import UnifiedInsightsPage from './pages/Feedback/UnifiedInsightsPage';
 import UserManagementPage from './pages/UserManagement/UserManagementPage';
@@ -80,6 +81,7 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="leave-management" element={<LeaveManagementPage />} />
+                <Route path="office-booking" element={<OfficeBookingPage />} />
                 <Route path="feedback" element={<FeedbackPage />} />
                 <Route path="feedback/insights" element={
                   <ProtectedRoute allowedRoles={['admin']}>

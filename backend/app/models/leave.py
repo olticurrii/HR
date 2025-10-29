@@ -40,18 +40,22 @@ class LeaveBalance(Base):
 class LeaveRequest(Base):
     __tablename__ = "leave_requests"
     
-    id = Column(String, primary_key=True, index=True)  # Changed to String to match database
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    full_name = Column(String, nullable=False)  # Added for Streamlit compatibility
-    start_date = Column(String, nullable=False)  # Changed to String to match database
-    end_date = Column(String, nullable=False)    # Changed to String to match database
-    type = Column(String, nullable=False)        # Changed from leave_type_id to type
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    leave_type_id = Column(Integer, ForeignKey("leave_types.id", ondelete="CASCADE"), nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    total_days = Column(Numeric(5, 2), nullable=False)
     reason = Column(Text, nullable=True)
-    status = Column(String, default="pending")
-    approver = Column(String, nullable=True)     # Changed from reviewed_by
-    decision_note = Column(Text, nullable=True)  # Changed from review_comments
+    status = Column(String(20), default="pending")
+    reviewed_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    review_comments = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
-    # Relationships (simplified to match actual schema)
-    user = relationship("User", foreign_keys=[user_id])
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id], back_populates="leave_requests")
+    leave_type = relationship("LeaveType")
+    reviewer = relationship("User", foreign_keys=[reviewed_by])
 

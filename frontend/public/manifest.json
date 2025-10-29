@@ -1,15 +1,15 @@
 {
-  "short_name": "HR Management",
-  "name": "HR Management System",
+  "short_name": "Traxcis",
+  "name": "Traxcis HR Portal",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "Screenshot 2025-10-29 at 19.01.00.png",
+      "sizes": "192x192",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#2563EB",
   "background_color": "#ffffff"
 }

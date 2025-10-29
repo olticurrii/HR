@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   MessageCircle,
   Send,
@@ -11,14 +12,15 @@ import {
   CheckCircle,
   MinusCircle,
   Eye,
-  EyeOff,
   TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { feedbackService, Feedback, FeedbackCreate } from '../../services/feedbackService';
 import { userService } from '../../services/userService';
 import FeedbackThread from '../../components/Feedback/FeedbackThread';
+import FeedbackTabs from '../../components/Feedback/FeedbackTabs';
 import { useFeedbackSettings } from '../../hooks/useFeedbackSettings';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 interface UserOption {
   id: number;
@@ -35,6 +37,7 @@ const FeedbackPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isDark, setIsDark] = useState(false);
 
   // Form state
   const [content, setContent] = useState('');
@@ -49,6 +52,21 @@ const FeedbackPage: React.FC = () => {
   const [allFeedback, setAllFeedback] = useState<Feedback[]>([]);
 
   const isAdmin = currentUser?.role === 'admin' || currentUser?.is_admin;
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     loadUsers();
@@ -165,11 +183,11 @@ const FeedbackPage: React.FC = () => {
   const getSentimentIcon = (label?: string) => {
     switch (label) {
       case 'positive':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle style={{ width: '16px', height: '16px' }} />;
       case 'negative':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
+        return <AlertCircle style={{ width: '16px', height: '16px' }} />;
       case 'neutral':
-        return <MinusCircle className="w-5 h-5 text-gray-500" />;
+        return <MinusCircle style={{ width: '16px', height: '16px' }} />;
       default:
         return null;
     }
@@ -191,23 +209,41 @@ const FeedbackPage: React.FC = () => {
   const getRecipientDisplay = (feedback: Feedback) => {
     if (feedback.recipient_type === 'ADMIN') {
       return (
-        <span className="inline-flex items-center text-sm text-purple-600">
-          <Shield className="w-4 h-4 mr-1" />
+        <span style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          fontSize: '14px', 
+          color: '#9333EA',
+          gap: '4px',
+        }}>
+          <Shield style={{ width: '14px', height: '14px' }} />
           Admin
         </span>
       );
     } else if (feedback.recipient_type === 'EVERYONE') {
       return (
-        <span className="inline-flex items-center text-sm text-primary">
-          <Users className="w-4 h-4 mr-1" />
+        <span style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          fontSize: '14px', 
+          color: TRAXCIS_COLORS.primary.DEFAULT,
+          gap: '4px',
+        }}>
+          <Users style={{ width: '14px', height: '14px' }} />
           Everyone
         </span>
       );
     } else {
       const recipient = users.find((u) => u.id === feedback.recipient_id);
       return (
-        <span className="inline-flex items-center text-sm text-gray-600">
-          <User className="w-4 h-4 mr-1" />
+        <span style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          fontSize: '14px', 
+          color: isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[600],
+          gap: '4px',
+        }}>
+          <User style={{ width: '14px', height: '14px' }} />
           {recipient?.full_name || 'Unknown User'}
         </span>
       );
@@ -231,121 +267,160 @@ const FeedbackPage: React.FC = () => {
     );
   };
 
+  // Theme colors
+  const pageBg = isDark ? TRAXCIS_COLORS.secondary[900] : TRAXCIS_COLORS.neutral.light;
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  const textColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  const subTextColor = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+  const inputBg = isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50];
+  const inputBorder = isDark ? TRAXCIS_COLORS.secondary[600] : TRAXCIS_COLORS.secondary[300];
+
   return (
-    <div className="space-y-6">
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: '24px',
+      fontFamily: "'Outfit', sans-serif",
+    }}>
+      {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-medium text-gray-900 dark:text-white flex flex-col">
-          <span className="flex items-center">
-            <MessageCircle className="w-6 h-6 mr-2" />
+        <h1 style={{
+          fontSize: '28px',
+          fontWeight: '500',
+          color: textColor,
+          display: 'flex',
+          flexDirection: 'column',
+          fontFamily: "'Outfit', sans-serif",
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <MessageCircle style={{ width: '28px', height: '28px' }} />
             Feedback
           </span>
-          <span className="accent-line mt-2"></span>
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 font-light">Share feedback and insights with your team</p>
+        <p style={{ 
+          color: subTextColor, 
+          fontWeight: '300',
+          marginTop: '8px',
+          fontSize: '15px',
+        }}>
+          Share feedback and insights with your team
+        </p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('create')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'create'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Send className="w-4 h-4 inline mr-2" />
-            Send Feedback
-          </button>
-          <button
-            onClick={() => setActiveTab('received')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'received'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Inbox className="w-4 h-4 inline mr-2" />
-            Received
-          </button>
-          <button
-            onClick={() => setActiveTab('sent')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'sent'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <SendHorizonal className="w-4 h-4 inline mr-2" />
-            Sent
-          </button>
-          {isAdmin && (
-            <>
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'all'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <Eye className="w-4 h-4 inline mr-2" />
-                All Feedback
-              </button>
-              <button
-                onClick={() => setActiveTab('insights')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'insights'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <TrendingUp className="w-4 h-4 inline mr-2" />
-                Insights
-              </button>
-            </>
-          )}
-        </nav>
-      </div>
+      <FeedbackTabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        showAdminTabs={isAdmin}
+      />
 
       {/* Alerts */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: '#FEE2E2',
+            border: '1px solid #FECACA',
+            color: '#991B1B',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            whiteSpace: 'pre-wrap',
+          }}
+        >
           {error}
-        </div>
+        </motion.div>
       )}
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: '#D1FAE5',
+            border: '1px solid #A7F3D0',
+            color: '#065F46',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '14px',
+          }}
+        >
           {success}
-        </div>
+        </motion.div>
       )}
 
       {/* Content */}
       {activeTab === 'create' && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium mb-4">Send Feedback</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: '16px',
+            boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${cardBorder}`,
+            padding: '24px',
+          }}
+        >
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            marginBottom: '20px',
+            color: textColor,
+          }}>
+            Send Feedback
+          </h2>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Recipient Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: textColor,
+                marginBottom: '12px',
+              }}>
                 Send To
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '12px',
+              }}>
                 <button
                   type="button"
                   onClick={() => {
                     setRecipientType('EVERYONE');
                     setRecipientId(undefined);
                   }}
-                  className={`p-3 border-2 rounded-lg flex flex-col items-center ${
-                    recipientType === 'EVERYONE'
-                      ? 'border-primary bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  style={{
+                    padding: '16px',
+                    border: `2px solid ${recipientType === 'EVERYONE' ? TRAXCIS_COLORS.primary.DEFAULT : cardBorder}`,
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    backgroundColor: recipientType === 'EVERYONE' 
+                      ? (isDark ? TRAXCIS_COLORS.primary[900] : TRAXCIS_COLORS.primary[50])
+                      : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    color: recipientType === 'EVERYONE' ? TRAXCIS_COLORS.primary.DEFAULT : textColor,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (recipientType !== 'EVERYONE') {
+                      e.currentTarget.style.borderColor = TRAXCIS_COLORS.secondary[400];
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (recipientType !== 'EVERYONE') {
+                      e.currentTarget.style.borderColor = cardBorder;
+                    }
+                  }}
                 >
-                  <Users className="w-6 h-6 mb-1" />
-                  <span className="text-sm font-medium">Everyone</span>
+                  <Users style={{ width: '24px', height: '24px', marginBottom: '8px' }} />
+                  <span style={{ fontSize: '14px', fontWeight: '500' }}>Everyone</span>
                 </button>
                 <button
                   type="button"
@@ -353,26 +428,64 @@ const FeedbackPage: React.FC = () => {
                     setRecipientType('ADMIN');
                     setRecipientId(undefined);
                   }}
-                  className={`p-3 border-2 rounded-lg flex flex-col items-center ${
-                    recipientType === 'ADMIN'
-                      ? 'border-primary bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  style={{
+                    padding: '16px',
+                    border: `2px solid ${recipientType === 'ADMIN' ? TRAXCIS_COLORS.primary.DEFAULT : cardBorder}`,
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    backgroundColor: recipientType === 'ADMIN' 
+                      ? (isDark ? TRAXCIS_COLORS.primary[900] : TRAXCIS_COLORS.primary[50])
+                      : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    color: recipientType === 'ADMIN' ? TRAXCIS_COLORS.primary.DEFAULT : textColor,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (recipientType !== 'ADMIN') {
+                      e.currentTarget.style.borderColor = TRAXCIS_COLORS.secondary[400];
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (recipientType !== 'ADMIN') {
+                      e.currentTarget.style.borderColor = cardBorder;
+                    }
+                  }}
                 >
-                  <Shield className="w-6 h-6 mb-1" />
-                  <span className="text-sm font-medium">Admin</span>
+                  <Shield style={{ width: '24px', height: '24px', marginBottom: '8px' }} />
+                  <span style={{ fontSize: '14px', fontWeight: '500' }}>Admin</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRecipientType('USER')}
-                  className={`p-3 border-2 rounded-lg flex flex-col items-center ${
-                    recipientType === 'USER'
-                      ? 'border-primary bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  style={{
+                    padding: '16px',
+                    border: `2px solid ${recipientType === 'USER' ? TRAXCIS_COLORS.primary.DEFAULT : cardBorder}`,
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    backgroundColor: recipientType === 'USER' 
+                      ? (isDark ? TRAXCIS_COLORS.primary[900] : TRAXCIS_COLORS.primary[50])
+                      : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    color: recipientType === 'USER' ? TRAXCIS_COLORS.primary.DEFAULT : textColor,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (recipientType !== 'USER') {
+                      e.currentTarget.style.borderColor = TRAXCIS_COLORS.secondary[400];
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (recipientType !== 'USER') {
+                      e.currentTarget.style.borderColor = cardBorder;
+                    }
+                  }}
                 >
-                  <User className="w-6 h-6 mb-1" />
-                  <span className="text-sm font-medium">Specific User</span>
+                  <User style={{ width: '24px', height: '24px', marginBottom: '8px' }} />
+                  <span style={{ fontSize: '14px', fontWeight: '500' }}>Specific User</span>
                 </button>
               </div>
             </div>
@@ -380,13 +493,36 @@ const FeedbackPage: React.FC = () => {
             {/* User Selection */}
             {recipientType === 'USER' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: textColor,
+                  marginBottom: '8px',
+                }}>
                   Select Recipient
                 </label>
                 <select
                   value={recipientId || ''}
                   onChange={(e) => setRecipientId(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: `1px solid ${inputBorder}`,
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontFamily: "'Outfit', sans-serif",
+                    backgroundColor: inputBg,
+                    color: textColor,
+                    cursor: 'pointer',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.outline = `2px solid ${TRAXCIS_COLORS.primary.DEFAULT}`;
+                    e.target.style.outlineOffset = '2px';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.outline = 'none';
+                  }}
                   required
                 >
                   <option value="">Choose a user...</option>
@@ -401,14 +537,38 @@ const FeedbackPage: React.FC = () => {
 
             {/* Feedback Content */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: textColor,
+                marginBottom: '8px',
+              }}>
                 Your Feedback
               </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: `1px solid ${inputBorder}`,
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontFamily: "'Outfit', sans-serif",
+                  backgroundColor: inputBg,
+                  color: textColor,
+                  resize: 'vertical',
+                  lineHeight: '1.5',
+                }}
+                onFocus={(e) => {
+                  e.target.style.outline = `2px solid ${TRAXCIS_COLORS.primary.DEFAULT}`;
+                  e.target.style.outlineOffset = '2px';
+                }}
+                onBlur={(e) => {
+                  e.target.style.outline = 'none';
+                }}
                 placeholder="Share your thoughts, suggestions, or concerns..."
                 required
               />
@@ -416,18 +576,30 @@ const FeedbackPage: React.FC = () => {
 
             {/* Anonymous Option - Conditional based on settings */}
             {feedbackSettings.feedback_allow_anonymous && (
-              <div className="flex items-center">
+              <div style={{ display: 'flex', alignItems: 'center' }}>
                 <input
                   type="checkbox"
                   id="anonymous"
                   checked={isAnonymous}
                   onChange={(e) => setIsAnonymous(e.target.checked)}
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  style={{
+                    height: '16px',
+                    width: '16px',
+                    marginRight: '8px',
+                    cursor: 'pointer',
+                  }}
                 />
-                <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-700">
+                <label 
+                  htmlFor="anonymous" 
+                  style={{ 
+                    fontSize: '14px', 
+                    color: textColor,
+                    cursor: 'pointer',
+                  }}
+                >
                   Send anonymously
                   {isAnonymous && (
-                    <span className="ml-2 text-xs text-gray-500">
+                    <span style={{ marginLeft: '8px', fontSize: '12px', color: subTextColor }}>
                       (Your identity will be hidden from non-admins)
                     </span>
                   )}
@@ -439,95 +611,229 @@ const FeedbackPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+              style={{
+                width: '100%',
+                backgroundColor: loading ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.primary.DEFAULT,
+                color: '#FFFFFF',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                fontFamily: "'Outfit', sans-serif",
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary[700];
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary.DEFAULT;
+                }
+              }}
             >
               {loading ? (
                 'Sending...'
               ) : (
                 <>
-                  <Send className="w-4 h-4 mr-2" />
+                  <Send style={{ width: '16px', height: '16px' }} />
                   Send Feedback
                 </>
               )}
             </button>
           </form>
-        </div>
+        </motion.div>
       )}
 
       {activeTab === 'received' && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium">Feedback Received</h2>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: textColor }}>
+            Feedback Received
+          </h2>
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '64px 0',
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRight: `3px solid ${cardBorder}`,
+                borderBottom: `3px solid ${cardBorder}`,
+                borderLeft: `3px solid ${cardBorder}`,
+                borderTop: `3px solid ${TRAXCIS_COLORS.primary.DEFAULT}`,
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto',
+              }} />
             </div>
           ) : receivedFeedback.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-              <Inbox className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p>No feedback received yet</p>
+            <div style={{
+              backgroundColor: cardBg,
+              borderRadius: '16px',
+              boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+              border: `1px solid ${cardBorder}`,
+              padding: '64px',
+              textAlign: 'center',
+              color: subTextColor,
+            }}>
+              <Inbox style={{ width: '64px', height: '64px', margin: '0 auto 16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '15px' }}>No feedback received yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {receivedFeedback.filter(f => !f.parent_id).map((feedback) => renderFeedbackCard(feedback))}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {activeTab === 'sent' && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium">Feedback Sent</h2>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: textColor }}>
+            Feedback Sent
+          </h2>
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '64px 0',
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRight: `3px solid ${cardBorder}`,
+                borderBottom: `3px solid ${cardBorder}`,
+                borderLeft: `3px solid ${cardBorder}`,
+                borderTop: `3px solid ${TRAXCIS_COLORS.primary.DEFAULT}`,
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto',
+              }} />
             </div>
           ) : sentFeedback.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-              <SendHorizonal className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p>No feedback sent yet</p>
+            <div style={{
+              backgroundColor: cardBg,
+              borderRadius: '16px',
+              boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+              border: `1px solid ${cardBorder}`,
+              padding: '64px',
+              textAlign: 'center',
+              color: subTextColor,
+            }}>
+              <SendHorizonal style={{ width: '64px', height: '64px', margin: '0 auto 16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '15px' }}>No feedback sent yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {sentFeedback.filter(f => !f.parent_id).map((feedback) => renderFeedbackCard(feedback))}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {activeTab === 'all' && isAdmin && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium">All Feedback (Admin View)</h2>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: textColor }}>
+            All Feedback (Admin View)
+          </h2>
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '64px 0',
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRight: `3px solid ${cardBorder}`,
+                borderBottom: `3px solid ${cardBorder}`,
+                borderLeft: `3px solid ${cardBorder}`,
+                borderTop: `3px solid ${TRAXCIS_COLORS.primary.DEFAULT}`,
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto',
+              }} />
             </div>
           ) : allFeedback.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-              <Eye className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p>No feedback in the system yet</p>
+            <div style={{
+              backgroundColor: cardBg,
+              borderRadius: '16px',
+              boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+              border: `1px solid ${cardBorder}`,
+              padding: '64px',
+              textAlign: 'center',
+              color: subTextColor,
+            }}>
+              <Eye style={{ width: '64px', height: '64px', margin: '0 auto 16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '15px' }}>No feedback in the system yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {allFeedback.filter(f => !f.parent_id).map((feedback) => renderFeedbackCard(feedback))}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {activeTab === 'insights' && isAdmin && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-center text-gray-500">
-            <TrendingUp className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium mb-2">Insights Dashboard</h3>
-            <p className="text-sm">View detailed analytics and trends</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: '16px',
+            boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            border: `1px solid ${cardBorder}`,
+            padding: '64px',
+          }}
+        >
+          <div style={{ textAlign: 'center', color: subTextColor }}>
+            <TrendingUp style={{ width: '64px', height: '64px', margin: '0 auto 16px', opacity: 0.3 }} />
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: textColor }}>
+              Insights Dashboard
+            </h3>
+            <p style={{ fontSize: '14px', marginBottom: '24px' }}>
+              View detailed analytics and trends
+            </p>
             <button
               onClick={() => (window.location.href = '/feedback/insights')}
-              className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+              style={{
+                backgroundColor: TRAXCIS_COLORS.primary.DEFAULT,
+                color: '#FFFFFF',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: "'Outfit', sans-serif",
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary[700]}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary.DEFAULT}
             >
               View Full Insights
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

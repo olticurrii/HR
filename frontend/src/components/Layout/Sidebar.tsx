@@ -42,6 +42,7 @@ const navigationSections = [
       { name: 'Projects', href: '/projects', icon: FolderOpen, roles: ['admin', 'manager', 'employee'] },
       { name: 'Time Tracking', href: '/time-tracking', icon: Clock, roles: ['admin', 'manager', 'employee'] },
       { name: 'Leave Management', href: '/leave-management', icon: Calendar, roles: ['admin', 'manager', 'employee'] },
+      { name: 'Office Booking', href: '/office-booking', icon: Building, roles: ['admin', 'manager', 'employee'] },
       { name: 'Chat', href: '/chat', icon: MessageSquare, roles: ['admin', 'manager', 'employee'] },
     ]
   },
@@ -116,13 +117,11 @@ const Sidebar: React.FC = () => {
       {/* Header */}
       <div className="p-6 border-b border-gray-100 dark:border-gray-700">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
-            <Building className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white">HR Portal</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Management System</p>
-          </div>
+          <img 
+            src="/Screenshot 2025-10-29 at 14.17.07.png" 
+            alt="Traxcis Logo" 
+            className="h-14 w-auto object-contain"
+          />
         </div>
       </div>
       

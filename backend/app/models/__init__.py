@@ -35,6 +35,7 @@ from app.models.notification import (
     Notification,
     PushNotificationToken
 )
+from app.models.office import Office, MeetingBooking
 
 __all__ = [
     "Base",
@@ -70,5 +71,7 @@ __all__ = [
     "DailyFeedbackAggregate",
     "FeedbackKeyword",
     "Notification",
-    "PushNotificationToken"
+    "PushNotificationToken",
+    "Office",
+    "MeetingBooking"
 ]

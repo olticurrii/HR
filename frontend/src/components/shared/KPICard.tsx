@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 interface KPICardProps {
   name: string;
@@ -19,16 +20,44 @@ const KPICard: React.FC<KPICardProps> = ({
   loading = false,
   progress,
 }) => {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
   const iconColors = {
-    primary: '#2563EB',
-    accent: '#F97316',
-    green: '#10B981',
-    yellow: '#F59E0B',
-    orange: '#F97316',
-    red: '#EF4444',
+    primary: TRAXCIS_COLORS.primary.DEFAULT,
+    accent: TRAXCIS_COLORS.accent.DEFAULT,
+    green: TRAXCIS_COLORS.status.success,
+    yellow: TRAXCIS_COLORS.status.warning,
+    orange: TRAXCIS_COLORS.accent.DEFAULT,
+    red: TRAXCIS_COLORS.status.error,
   };
 
   const iconBg = iconColors[color];
+  
+  // Card background: use neutral light in light mode, secondary dark in dark mode
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : TRAXCIS_COLORS.neutral.light;
+  // Border: use secondary colors
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  // Title: use secondary for headings
+  const titleColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  // Value: use primary for important numbers
+  const valueColor = isDark ? TRAXCIS_COLORS.primary[400] : TRAXCIS_COLORS.primary.DEFAULT;
+  // Progress bar background: use secondary colors
+  const progressBg = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
 
   return (
     <motion.div
@@ -36,11 +65,11 @@ const KPICard: React.FC<KPICardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       style={{
-        backgroundColor: '#F8FAFC',
+        backgroundColor: cardBg,
         borderRadius: '12px',
         padding: '20px',
-        border: '1px solid #E5E7EB',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+        border: `1px solid ${cardBorder}`,
+        boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
         transition: 'all 0.3s ease',
       }}
       whileHover={{
@@ -94,7 +123,7 @@ const KPICard: React.FC<KPICardProps> = ({
             <h3 style={{
               fontSize: '14px',
               fontWeight: '500',
-              color: '#1E293B',
+              color: titleColor,
               fontFamily: "'Outfit', sans-serif",
               marginBottom: '4px',
             }}>
@@ -103,7 +132,7 @@ const KPICard: React.FC<KPICardProps> = ({
             <p style={{
               fontSize: '24px',
               fontWeight: '500',
-              color: '#2563EB',
+              color: valueColor,
               fontFamily: "'Outfit', sans-serif",
               marginTop: '4px',
             }}>
@@ -116,7 +145,7 @@ const KPICard: React.FC<KPICardProps> = ({
             <div style={{ marginTop: '8px' }}>
               <div style={{
                 height: '4px',
-                backgroundColor: '#E5E7EB',
+                backgroundColor: progressBg,
                 borderRadius: '2px',
                 overflow: 'hidden',
               }}>
@@ -126,7 +155,7 @@ const KPICard: React.FC<KPICardProps> = ({
                   transition={{ duration: 0.8, delay: 0.2 }}
                   style={{
                     height: '100%',
-                    backgroundColor: '#F97316',
+                    backgroundColor: TRAXCIS_COLORS.accent.DEFAULT,
                     borderRadius: '2px',
                   }}
                 />

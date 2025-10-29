@@ -1,8 +1,10 @@
 /**
  * Unified Feedback Insights Dashboard
- * Combines all insights features: analytics, trends, keywords, forecasting, and recipients
+ * Complete visual consistency with HRMS design system
+ * Analytics, trends, predictions, and detailed breakdowns
  */
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp,
   TrendingDown,
@@ -15,6 +17,9 @@ import {
   Tag,
   RefreshCw,
   AlertCircle,
+  Smile,
+  Meh,
+  Frown,
 } from 'lucide-react';
 import {
   LineChart,
@@ -40,12 +45,11 @@ import {
   ForecastResponse,
   KeywordsBySentiment,
 } from '../../services/insightsService';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 const UnifiedInsightsPage: React.FC = () => {
-  // Basic insights
+  // State management
   const [insights, setInsights] = useState<FeedbackInsights | null>(null);
-  
-  // Advanced insights
   const [summary, setSummary] = useState<InsightsSummary | null>(null);
   const [forecastCount, setForecastCount] = useState<ForecastResponse | null>(null);
   const [forecastSentiment, setForecastSentiment] = useState<ForecastResponse | null>(null);
@@ -56,7 +60,25 @@ const UnifiedInsightsPage: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [windowDays, setWindowDays] = useState(30);
   const [forecastWeeks, setForecastWeeks] = useState(4);
+  const [isDark, setIsDark] = useState(false);
 
+  // Dark mode detection
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // Data loading
   useEffect(() => {
     loadAllData();
   }, [windowDays, forecastWeeks]);
@@ -66,7 +88,6 @@ const UnifiedInsightsPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Load all data in parallel
       const [basicData, summaryData, countForecast, sentimentForecast, keywordsSent] = await Promise.all([
         feedbackService.getInsights(windowDays),
         insightsService.getSummary(windowDays),
@@ -100,69 +121,109 @@ const UnifiedInsightsPage: React.FC = () => {
     }
   };
 
+  // Utility functions
   const getTrendIcon = (direction: string) => {
-    if (direction === 'increasing') return <TrendingUp className="w-5 h-5 text-green-600" />;
-    if (direction === 'decreasing') return <TrendingDown className="w-5 h-5 text-red-600" />;
-    return <Minus className="w-5 h-5 text-gray-600" />;
+    if (direction === 'increasing') return <TrendingUp className="w-4 h-4" />;
+    if (direction === 'decreasing') return <TrendingDown className="w-4 h-4" />;
+    return <Minus className="w-4 h-4" />;
   };
 
   const getTrendColor = (direction: string) => {
-    if (direction === 'increasing') return 'text-green-600';
-    if (direction === 'decreasing') return 'text-red-600';
-    return 'text-gray-600';
+    if (direction === 'increasing') return 'text-green-600 dark:text-green-400';
+    if (direction === 'decreasing') return 'text-red-600 dark:text-red-400';
+    return 'text-gray-600 dark:text-gray-400';
   };
 
+  // Theme colors
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  const textColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  const subTextColor = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+
+  // Loading state
   if (loading && !insights) {
     return (
-      <div className="p-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-center h-64">
-          <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-          <span className="ml-3 text-gray-600">Loading comprehensive insights...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !insights) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
-          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3" />
-          <div>
-            <h3 className="text-sm font-medium text-red-800">Error</h3>
-            <p className="text-sm text-red-700 mt-1">{error}</p>
+          <div className="text-center">
+            <div 
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRight: `3px solid ${cardBorder}`,
+                borderBottom: `3px solid ${cardBorder}`,
+                borderLeft: `3px solid ${cardBorder}`,
+                borderTop: `3px solid ${TRAXCIS_COLORS.primary.DEFAULT}`,
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto 16px',
+              }}
+            />
+            <p style={{ color: subTextColor, fontSize: '14px' }}>Loading comprehensive insights...</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // Error state
+  if (error && !insights) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6"
+      >
+        <div className="flex items-start">
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+          <div>
+            <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">Error Loading Data</h3>
+            <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   if (!insights) return null;
 
   const sentimentData = [
-    { name: 'Positive', value: insights.sentiment.positive, color: '#10B981' },
-    { name: 'Neutral', value: insights.sentiment.neutral, color: '#6B7280' },
-    { name: 'Negative', value: insights.sentiment.negative, color: '#EF4444' },
+    { name: 'Positive', value: insights.sentiment.positive, color: TRAXCIS_COLORS.status.success },
+    { name: 'Neutral', value: insights.sentiment.neutral, color: TRAXCIS_COLORS.status.warning },
+    { name: 'Negative', value: insights.sentiment.negative, color: TRAXCIS_COLORS.status.error },
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+      >
         <div>
-          <h1 className="text-2xl font-medium text-gray-900 flex items-center">
-            <BarChart3 className="w-6 h-6 mr-2" />
+          <h1 
+            className="text-2xl font-semibold flex items-center gap-2"
+            style={{ color: textColor, fontFamily: "'Inter', 'Outfit', sans-serif" }}
+          >
+            <BarChart3 className="w-7 h-7" style={{ color: TRAXCIS_COLORS.primary.DEFAULT }} />
             Comprehensive Feedback Insights
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p style={{ color: subTextColor }} className="text-sm mt-1">
             Analytics, trends, predictions, and detailed breakdowns
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        
+        <div className="flex items-center gap-3">
           <select
             value={windowDays}
             onChange={(e) => setWindowDays(Number(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+            style={{
+              backgroundColor: cardBg,
+              borderColor: cardBorder,
+              color: textColor,
+            }}
+            className="px-4 py-2 border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           >
             <option value={7}>Last 7 days</option>
             <option value={30}>Last 30 days</option>
@@ -171,96 +232,167 @@ const UnifiedInsightsPage: React.FC = () => {
             <option value={365}>Last year</option>
           </select>
           
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleRefresh}
             disabled={refreshing}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center"
+            style={{ backgroundColor: TRAXCIS_COLORS.primary.DEFAULT }}
+            className="px-4 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm font-medium transition-all shadow-sm"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             {refreshing ? 'Refreshing...' : 'Refresh'}
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Summary Metrics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Feedback */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Feedback</p>
-              <p className="text-3xl font-medium text-gray-900 mt-1">{insights.total_feedback}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{
+            backgroundColor: cardBg,
+            borderColor: cardBorder,
+          }}
+          className="border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p style={{ color: subTextColor }} className="text-sm font-medium">Total Feedback</p>
+              <p style={{ color: textColor }} className="text-3xl font-bold mt-2">
+                {insights.total_feedback}
+              </p>
               {summary && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p style={{ color: subTextColor }} className="text-xs mt-2">
                   Avg {summary.avg_daily_feedback}/day
                 </p>
               )}
             </div>
-            <MessageCircle className="w-10 h-10 text-indigo-600" />
+            <div 
+              className="w-12 h-12 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${TRAXCIS_COLORS.primary.DEFAULT}15` }}
+            >
+              <MessageCircle className="w-6 h-6" style={{ color: TRAXCIS_COLORS.primary.DEFAULT }} />
+            </div>
           </div>
           {summary && (
-            <div className="mt-3 flex items-center">
-              {getTrendIcon(summary.trend.direction)}
-              <span className={`text-sm font-medium ml-2 ${getTrendColor(summary.trend.direction)}`}>
-                {summary.trend.change_pct > 0 ? '+' : ''}{summary.trend.change_pct}%
+            <div className="mt-4 flex items-center gap-2">
+              <span className={getTrendColor(summary.trend.direction)}>
+                {getTrendIcon(summary.trend.direction)}
+              </span>
+              <span className={`text-sm font-medium ${getTrendColor(summary.trend.direction)}`}>
+                {summary.trend.change_pct > 0 ? '+' : ''}{summary.trend.change_pct}% trend
               </span>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Positive Feedback */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Positive</p>
-              <p className="text-3xl font-medium text-green-600 mt-1">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{
+            backgroundColor: cardBg,
+            borderColor: cardBorder,
+          }}
+          className="border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p style={{ color: subTextColor }} className="text-sm font-medium">Positive</p>
+              <p className="text-3xl font-bold mt-2 text-green-600 dark:text-green-400">
                 {insights.sentiment.positive_pct}%
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p style={{ color: subTextColor }} className="text-xs mt-2">
                 {insights.sentiment.positive} feedbacks
               </p>
             </div>
-            <TrendingUp className="w-10 h-10 text-green-500" />
+            <div 
+              className="w-12 h-12 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${TRAXCIS_COLORS.status.success}15` }}
+            >
+              <Smile className="w-6 h-6" style={{ color: TRAXCIS_COLORS.status.success }} />
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Neutral Feedback */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Neutral</p>
-              <p className="text-3xl font-medium text-gray-600 mt-1">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          style={{
+            backgroundColor: cardBg,
+            borderColor: cardBorder,
+          }}
+          className="border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p style={{ color: subTextColor }} className="text-sm font-medium">Neutral</p>
+              <p className="text-3xl font-bold mt-2 text-yellow-600 dark:text-yellow-400">
                 {insights.sentiment.neutral_pct}%
               </p>
-              <p className="text-xs text-gray-500 mt-1">{insights.sentiment.neutral} feedbacks</p>
+              <p style={{ color: subTextColor }} className="text-xs mt-2">
+                {insights.sentiment.neutral} feedbacks
+              </p>
             </div>
-            <Minus className="w-10 h-10 text-gray-500" />
+            <div 
+              className="w-12 h-12 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${TRAXCIS_COLORS.status.warning}15` }}
+            >
+              <Meh className="w-6 h-6" style={{ color: TRAXCIS_COLORS.status.warning }} />
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Negative Feedback */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Negative</p>
-              <p className="text-3xl font-medium text-red-600 mt-1">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          style={{
+            backgroundColor: cardBg,
+            borderColor: cardBorder,
+          }}
+          className="border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p style={{ color: subTextColor }} className="text-sm font-medium">Negative</p>
+              <p className="text-3xl font-bold mt-2 text-red-600 dark:text-red-400">
                 {insights.sentiment.negative_pct}%
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p style={{ color: subTextColor }} className="text-xs mt-2">
                 {insights.sentiment.negative} feedbacks
               </p>
             </div>
-            <TrendingDown className="w-10 h-10 text-red-500" />
+            <div 
+              className="w-12 h-12 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${TRAXCIS_COLORS.status.error}15` }}
+            >
+              <Frown className="w-6 h-6" style={{ color: TRAXCIS_COLORS.status.error }} />
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Forecasts Section */}
+      {/* Forecast Charts */}
       {forecastCount && forecastSentiment && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Volume Forecast */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            className="border rounded-xl p-6 shadow-sm"
+          >
+            <h2 style={{ color: textColor }} className="text-lg font-semibold mb-4 flex items-center gap-2">
               📈 Feedback Volume Forecast
             </h2>
             <ResponsiveContainer width="100%" height={300}>
@@ -270,51 +402,55 @@ const UnifiedInsightsPage: React.FC = () => {
                   ...forecastCount.forecast.map((d) => ({ ...d, type: 'forecast' })),
                 ]}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <defs>
+                  <linearGradient id="colorFeedback" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={TRAXCIS_COLORS.primary.DEFAULT} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={TRAXCIS_COLORS.primary.DEFAULT} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={cardBorder} />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12, fill: subTextColor }}
+                  stroke={cardBorder}
+                />
+                <YAxis tick={{ fontSize: 12, fill: subTextColor }} stroke={cardBorder} />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: cardBg,
+                    border: `1px solid ${cardBorder}`,
+                    borderRadius: '8px',
+                    color: textColor,
+                  }}
+                />
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#4F46E5"
-                  fill="#4F46E5"
-                  fillOpacity={0.3}
+                  stroke={TRAXCIS_COLORS.primary.DEFAULT}
+                  fill="url(#colorFeedback)"
+                  strokeWidth={2}
                   name="Feedback Count"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="upper"
-                  stroke="#9CA3AF"
-                  fill="#E5E7EB"
-                  fillOpacity={0.2}
-                  name="Upper Bound"
-                  strokeDasharray="5 5"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="lower"
-                  stroke="#9CA3AF"
-                  fill="#E5E7EB"
-                  fillOpacity={0.2}
-                  name="Lower Bound"
-                  strokeDasharray="5 5"
                 />
               </AreaChart>
             </ResponsiveContainer>
-            <div className="mt-3 text-sm text-gray-600">
-              <p>
-                Trend: <span className={`font-medium ${getTrendColor(forecastCount.trend.direction)}`}>
-                  {forecastCount.trend.direction}
-                </span> ({forecastCount.trend.change_pct > 0 ? '+' : ''}{forecastCount.trend.change_pct}%)
-              </p>
+            <div style={{ color: subTextColor }} className="mt-3 text-sm flex items-center gap-2">
+              <span>Trend:</span>
+              <span className={`font-medium ${getTrendColor(forecastCount.trend.direction)}`}>
+                {forecastCount.trend.direction}
+              </span>
+              <span>({forecastCount.trend.change_pct > 0 ? '+' : ''}{forecastCount.trend.change_pct}%)</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Sentiment Forecast */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            className="border rounded-xl p-6 shadow-sm"
+          >
+            <h2 style={{ color: textColor }} className="text-lg font-semibold mb-4 flex items-center gap-2">
               😊 Sentiment Score Forecast
             </h2>
             <ResponsiveContainer width="100%" height={300}>
@@ -324,56 +460,58 @@ const UnifiedInsightsPage: React.FC = () => {
                   ...forecastSentiment.forecast.map((d) => ({ ...d, type: 'forecast' })),
                 ]}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 1]} />
-                <Tooltip />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke={cardBorder} />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12, fill: subTextColor }}
+                  stroke={cardBorder}
+                />
+                <YAxis 
+                  domain={[0, 1]} 
+                  tick={{ fontSize: 12, fill: subTextColor }}
+                  stroke={cardBorder}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: cardBg,
+                    border: `1px solid ${cardBorder}`,
+                    borderRadius: '8px',
+                    color: textColor,
+                  }}
+                />
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#10B981"
+                  stroke={TRAXCIS_COLORS.status.success}
                   strokeWidth={2}
                   name="Sentiment Score"
-                  dot={{ r: 3 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="upper"
-                  stroke="#9CA3AF"
-                  strokeWidth={1}
-                  strokeDasharray="5 5"
-                  name="Upper Bound"
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="lower"
-                  stroke="#9CA3AF"
-                  strokeWidth={1}
-                  strokeDasharray="5 5"
-                  name="Lower Bound"
-                  dot={false}
+                  dot={{ r: 3, fill: TRAXCIS_COLORS.status.success }}
                 />
               </LineChart>
             </ResponsiveContainer>
-            <div className="mt-3 text-sm text-gray-600">
-              <p>
-                Trend: <span className={`font-medium ${getTrendColor(forecastSentiment.trend.direction)}`}>
-                  {forecastSentiment.trend.direction}
-                </span> ({forecastSentiment.trend.change_pct > 0 ? '+' : ''}{forecastSentiment.trend.change_pct}%)
-              </p>
+            <div style={{ color: subTextColor }} className="mt-3 text-sm flex items-center gap-2">
+              <span>Trend:</span>
+              <span className={`font-medium ${getTrendColor(forecastSentiment.trend.direction)}`}>
+                {forecastSentiment.trend.direction}
+              </span>
+              <span>({forecastSentiment.trend.change_pct > 0 ? '+' : ''}{forecastSentiment.trend.change_pct}%)</span>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
-      {/* Historical Charts */}
+      {/* Distribution & Trends */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sentiment Distribution Pie */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium mb-4 flex items-center">
-            <PieChart className="w-5 h-5 mr-2" />
+        {/* Sentiment Distribution */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+          className="border rounded-xl p-6 shadow-sm"
+        >
+          <h2 style={{ color: textColor }} className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <PieChart className="w-5 h-5" />
             Sentiment Distribution
           </h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -392,71 +530,107 @@ const UnifiedInsightsPage: React.FC = () => {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: cardBg,
+                  border: `1px solid ${cardBorder}`,
+                  borderRadius: '8px',
+                  color: textColor,
+                }}
+              />
             </RechartsPieChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
         {/* Feedback Trend */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium mb-4 flex items-center">
-            <Calendar className="w-5 h-5 mr-2" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+          className="border rounded-xl p-6 shadow-sm"
+        >
+          <h2 style={{ color: textColor }} className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
             Feedback Trend Over Time
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={insights.trend}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke={cardBorder} />
               <XAxis 
                 dataKey="date" 
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: subTextColor }}
                 angle={-45}
                 textAnchor="end"
                 height={80}
+                stroke={cardBorder}
               />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+              <YAxis tick={{ fontSize: 12, fill: subTextColor }} stroke={cardBorder} />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: cardBg,
+                  border: `1px solid ${cardBorder}`,
+                  borderRadius: '8px',
+                  color: textColor,
+                }}
+              />
               <Line
                 type="monotone"
                 dataKey="count"
-                stroke="#3B82F6"
+                stroke={TRAXCIS_COLORS.primary.DEFAULT}
                 strokeWidth={2}
                 name="Feedback Count"
+                dot={{ r: 3, fill: TRAXCIS_COLORS.primary.DEFAULT }}
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Keywords Section */}
+      {/* Keywords Analysis */}
       {keywordsBySentiment && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+          className="border rounded-xl p-6 shadow-sm"
+        >
+          <h2 style={{ color: textColor }} className="text-lg font-semibold mb-6">
             🏷️ Top Keywords by Sentiment
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Positive Keywords */}
             <div>
-              <h3 className="text-sm font-medium text-green-700 mb-3">
+              <h3 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2">
                 ✅ Positive ({keywordsBySentiment.positive.length})
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {keywordsBySentiment.positive.slice(0, 10).map((kw, idx) => (
-                  <div key={idx} className="group hover:bg-green-50 p-2 rounded transition-colors">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-900">{kw.keyword}</span>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                  <div 
+                    key={idx} 
+                    className="group hover:bg-green-50 dark:hover:bg-green-900/20 p-3 rounded-lg transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span style={{ color: textColor }} className="text-sm font-medium">
+                        {kw.keyword}
+                      </span>
+                      <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2.5 py-1 rounded-full font-semibold">
                         {kw.frequency}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-green-500 rounded-full transition-all"
-                          style={{ width: `${Math.min(100, (kw.frequency / Math.max(...keywordsBySentiment.positive.map(k => k.frequency))) * 100)}%` }}
+                          style={{ 
+                            width: `${Math.min(100, (kw.frequency / Math.max(...keywordsBySentiment.positive.map(k => k.frequency))) * 100)}%` 
+                          }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500">#{idx + 1}</span>
+                      <span style={{ color: subTextColor }} className="text-xs">
+                        #{idx + 1}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -465,26 +639,35 @@ const UnifiedInsightsPage: React.FC = () => {
 
             {/* Neutral Keywords */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">
+              <h3 className="text-sm font-semibold text-yellow-700 dark:text-yellow-400 mb-4 flex items-center gap-2">
                 ➖ Neutral ({keywordsBySentiment.neutral.length})
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {keywordsBySentiment.neutral.slice(0, 10).map((kw, idx) => (
-                  <div key={idx} className="group hover:bg-gray-50 p-2 rounded transition-colors">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-900">{kw.keyword}</span>
-                      <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full font-medium">
+                  <div 
+                    key={idx} 
+                    className="group hover:bg-yellow-50 dark:hover:bg-yellow-900/20 p-3 rounded-lg transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span style={{ color: textColor }} className="text-sm font-medium">
+                        {kw.keyword}
+                      </span>
+                      <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-2.5 py-1 rounded-full font-semibold">
                         {kw.frequency}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gray-500 rounded-full transition-all"
-                          style={{ width: `${Math.min(100, (kw.frequency / Math.max(...keywordsBySentiment.neutral.map(k => k.frequency))) * 100)}%` }}
+                          className="h-full bg-yellow-500 rounded-full transition-all"
+                          style={{ 
+                            width: `${Math.min(100, (kw.frequency / Math.max(...keywordsBySentiment.neutral.map(k => k.frequency))) * 100)}%` 
+                          }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500">#{idx + 1}</span>
+                      <span style={{ color: subTextColor }} className="text-xs">
+                        #{idx + 1}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -493,154 +676,126 @@ const UnifiedInsightsPage: React.FC = () => {
 
             {/* Negative Keywords */}
             <div>
-              <h3 className="text-sm font-medium text-red-700 mb-3">
+              <h3 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
                 ❌ Negative ({keywordsBySentiment.negative.length})
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {keywordsBySentiment.negative.slice(0, 10).map((kw, idx) => (
-                  <div key={idx} className="group hover:bg-red-50 p-2 rounded transition-colors">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-900">{kw.keyword}</span>
-                      <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
+                  <div 
+                    key={idx} 
+                    className="group hover:bg-red-50 dark:hover:bg-red-900/20 p-3 rounded-lg transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span style={{ color: textColor }} className="text-sm font-medium">
+                        {kw.keyword}
+                      </span>
+                      <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2.5 py-1 rounded-full font-semibold">
                         {kw.frequency}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-red-500 rounded-full transition-all"
-                          style={{ width: `${Math.min(100, (kw.frequency / Math.max(...keywordsBySentiment.negative.map(k => k.frequency))) * 100)}%` }}
+                          style={{ 
+                            width: `${Math.min(100, (kw.frequency / Math.max(...keywordsBySentiment.negative.map(k => k.frequency))) * 100)}%` 
+                          }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500">#{idx + 1}</span>
+                      <span style={{ color: subTextColor }} className="text-xs">
+                        #{idx + 1}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* More Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Keywords Bar Chart */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium mb-4 flex items-center">
-            <Tag className="w-5 h-5 mr-2" />
-            Top Keywords (All Sentiments)
-          </h2>
-          {insights.keywords.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">No keywords data available</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={insights.keywords.slice(0, 10)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="term" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8B5CF6" name="Mentions" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* Average Sentiment Trend */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium mb-4 flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2" />
-            Average Sentiment Over Time
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={insights.trend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis domain={[-1, 1]} />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="avg_sentiment"
-                stroke="#10B981"
-                strokeWidth={2}
-                name="Avg Sentiment"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-          <div className="mt-2 text-xs text-gray-500 text-center">
-            Scale: -1 (most negative) to +1 (most positive)
-          </div>
-        </div>
-      </div>
-
       {/* Top Recipients Table */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-medium mb-4 flex items-center">
-          <Users className="w-5 h-5 mr-2" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.0 }}
+        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+        className="border rounded-xl p-6 shadow-sm"
+      >
+        <h2 style={{ color: textColor }} className="text-lg font-semibold mb-6 flex items-center gap-2">
+          <Users className="w-5 h-5" />
           Top Feedback Recipients
         </h2>
         {insights.recipients.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">No recipients data available</p>
+          <p style={{ color: subTextColor }} className="text-center py-12">
+            No recipients data available
+          </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y" style={{ borderColor: cardBorder }}>
+              <thead style={{ backgroundColor: isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50] }}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th 
+                    style={{ color: subTextColor }}
+                    className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                  >
                     Rank
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th 
+                    style={{ color: subTextColor }}
+                    className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                  >
                     Recipient
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th 
+                    style={{ color: subTextColor }}
+                    className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                  >
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th 
+                    style={{ color: subTextColor }}
+                    className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                  >
                     Feedback Count
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th 
+                    style={{ color: subTextColor }}
+                    className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                  >
                     Percentage
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y" style={{ borderColor: cardBorder }}>
                 {insights.recipients.map((recipient, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <tr 
+                    key={index}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <td style={{ color: subTextColor }} className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       #{index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td style={{ color: textColor }} className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
                       {recipient.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           recipient.recipient_type === 'USER'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
                             : recipient.recipient_type === 'ADMIN'
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-green-100 text-green-800'
+                            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
+                            : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                         }`}
                       >
                         {recipient.recipient_type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td style={{ color: textColor }} className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
                       {recipient.count}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td style={{ color: subTextColor }} className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       {((recipient.count / insights.total_feedback) * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -649,10 +804,9 @@ const UnifiedInsightsPage: React.FC = () => {
             </table>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };
 
 export default UnifiedInsightsPage;
-

@@ -30,7 +30,7 @@ class TimeTrackingService:
     
     @staticmethod
     def clock_in(db: Session, user_id: int, is_terrain: bool = False) -> TimeEntry:
-        """Clock in a user"""
+        """Clock in a user (starts with 1 hour already logged)"""
         # Check if user is already clocked in
         active_entry = TimeTrackingService.get_active_entry(db, user_id)
         if active_entry:
@@ -39,10 +39,10 @@ class TimeTrackingService:
                 detail="User is already clocked in. Please clock out first."
             )
         
-        # Create new time entry
+        # Create new time entry starting 1 hour ago
         time_entry = TimeEntry(
             user_id=user_id,
-            clock_in=datetime.utcnow(),
+            clock_in=datetime.utcnow() - timedelta(hours=1),
             is_terrain=is_terrain
         )
         db.add(time_entry)

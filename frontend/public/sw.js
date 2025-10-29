@@ -38,7 +38,7 @@ self.addEventListener('push', (event) => {
   console.log('Push event received:', event);
   
   let notificationData = {
-    title: 'HR Management System',
+    title: 'Traxcis HR Portal',
     body: 'You have a new notification',
     icon: '/favicon.ico',
     badge: '/favicon.ico',

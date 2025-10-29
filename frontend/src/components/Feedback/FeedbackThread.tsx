@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, EyeOff, Reply, AlertTriangle, MessageSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Feedback, feedbackService } from '../../services/feedbackService';
 import { useAuth } from '../../contexts/AuthContext';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 interface FeedbackThreadProps {
   feedback: Feedback;
@@ -29,8 +31,24 @@ const FeedbackThread: React.FC<FeedbackThreadProps> = ({
   const [replyContent, setReplyContent] = useState('');
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [isAnonymousReply, setIsAnonymousReply] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   const isAdmin = currentUser?.role === 'admin' || currentUser?.is_admin;
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const loadReplies = async () => {
     if (feedback.reply_count === 0) return;
@@ -80,56 +98,121 @@ const FeedbackThread: React.FC<FeedbackThreadProps> = ({
     }
   };
 
+  // Theme colors
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  const textColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  const subTextColor = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+  const inputBg = isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50];
+  const inputBorder = isDark ? TRAXCIS_COLORS.secondary[600] : TRAXCIS_COLORS.secondary[300];
+  const replyBg = isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[100];
+
   return (
-    <div className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        backgroundColor: cardBg,
+        border: `1px solid ${cardBorder}`,
+        borderRadius: '12px',
+        padding: '20px',
+        boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+        transition: 'all 0.3s ease',
+        fontFamily: "'Outfit', sans-serif",
+      }}
+      whileHover={{
+        boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      }}
+    >
       {/* Flagged Indicator */}
       {feedback.is_flagged && isAdmin && (
-        <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-center text-sm text-yellow-800">
-          <AlertTriangle className="w-4 h-4 mr-2" />
+        <div style={{
+          marginBottom: '16px',
+          padding: '8px 12px',
+          backgroundColor: '#FEF3C7',
+          border: `1px solid #FDE68A`,
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          fontSize: '14px',
+          color: '#92400E',
+        }}>
+          <AlertTriangle style={{ width: '16px', height: '16px', marginRight: '8px' }} />
           <span>Flagged: {feedback.flagged_reason}</span>
         </div>
       )}
 
       {/* Main Feedback */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {feedback.author_display === 'Anonymous' ? (
-            <div className="flex items-center text-gray-500">
-              <EyeOff className="w-4 h-4 mr-1" />
-              <span className="text-sm font-medium">Anonymous</span>
+            <div style={{ display: 'flex', alignItems: 'center', color: subTextColor }}>
+              <EyeOff style={{ width: '16px', height: '16px', marginRight: '6px' }} />
+              <span style={{ fontSize: '14px', fontWeight: '500' }}>Anonymous</span>
             </div>
           ) : (
-            <div className="flex items-center text-gray-700">
-              <User className="w-4 h-4 mr-1" />
-              <span className="text-sm font-medium">{feedback.author_display}</span>
+            <div style={{ display: 'flex', alignItems: 'center', color: textColor }}>
+              <User style={{ width: '16px', height: '16px', marginRight: '6px' }} />
+              <span style={{ fontSize: '14px', fontWeight: '500' }}>{feedback.author_display}</span>
             </div>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {feedback.sentiment_label && (
             <span
-              className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${getSentimentColor(
-                feedback.sentiment_label
-              )}`}
+              className={getSentimentColor(feedback.sentiment_label)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                fontSize: '12px',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
             >
               {getSentimentIcon(feedback.sentiment_label)}
-              <span className="ml-1 capitalize">{feedback.sentiment_label}</span>
+              <span style={{ textTransform: 'capitalize' }}>{feedback.sentiment_label}</span>
             </span>
           )}
         </div>
       </div>
 
-      <p className="text-gray-800 mb-3 whitespace-pre-wrap">{feedback.content}</p>
+      <p style={{ 
+        color: textColor, 
+        marginBottom: '16px', 
+        whiteSpace: 'pre-wrap',
+        fontSize: '14px',
+        lineHeight: '1.6',
+      }}>
+        {feedback.content}
+      </p>
 
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <div className="flex items-center space-x-3">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: '12px',
+        color: subTextColor,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span>To: {getRecipientDisplay(feedback)}</span>
           <span>{new Date(feedback.created_at).toLocaleDateString()}</span>
         </div>
         {feedback.keywords && feedback.keywords.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
             {feedback.keywords.slice(0, 3).map((keyword, idx) => (
-              <span key={idx} className="px-2 py-0.5 bg-primary-50 text-primary rounded">
+              <span 
+                key={idx} 
+                style={{
+                  padding: '2px 8px',
+                  backgroundColor: isDark ? TRAXCIS_COLORS.primary[900] : TRAXCIS_COLORS.primary[50],
+                  color: TRAXCIS_COLORS.primary.DEFAULT,
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                }}
+              >
                 {keyword}
               </span>
             ))}
@@ -139,7 +222,14 @@ const FeedbackThread: React.FC<FeedbackThreadProps> = ({
 
       {/* Reply Actions - Conditional based on threading setting */}
       {enableThreading && (
-        <div className="mt-3 pt-3 border-t border-gray-200 flex items-center gap-3">
+        <div style={{
+          marginTop: '16px',
+          paddingTop: '16px',
+          borderTop: `1px solid ${cardBorder}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
           {feedback.reply_count > 0 && (
             <button
               onClick={() => {
@@ -149,18 +239,46 @@ const FeedbackThread: React.FC<FeedbackThreadProps> = ({
                   loadReplies();
                 }
               }}
-              className="text-sm text-primary hover:text-blue-700 flex items-center gap-1"
+              style={{
+                fontSize: '14px',
+                color: TRAXCIS_COLORS.primary.DEFAULT,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: '500',
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = TRAXCIS_COLORS.primary[700]}
+              onMouseLeave={(e) => e.currentTarget.style.color = TRAXCIS_COLORS.primary.DEFAULT}
             >
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare style={{ width: '16px', height: '16px' }} />
               {showReplies ? 'Hide' : 'View'} {feedback.reply_count} {feedback.reply_count === 1 ? 'reply' : 'replies'}
             </button>
           )}
           
           <button
             onClick={() => setShowReplyForm(!showReplyForm)}
-            className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+            style={{
+              fontSize: '14px',
+              color: subTextColor,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: "'Outfit', sans-serif",
+              fontWeight: '500',
+              transition: 'color 0.2s ease',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = textColor}
+            onMouseLeave={(e) => e.currentTarget.style.color = subTextColor}
           >
-            <Reply className="w-4 h-4" />
+            <Reply style={{ width: '16px', height: '16px' }} />
             Reply
           </button>
         </div>
@@ -168,28 +286,69 @@ const FeedbackThread: React.FC<FeedbackThreadProps> = ({
 
       {/* Reply Form */}
       {showReplyForm && (
-        <form onSubmit={handleReplySubmit} className="mt-3 p-3 bg-gray-50 rounded-lg">
+        <form 
+          onSubmit={handleReplySubmit} 
+          style={{
+            marginTop: '16px',
+            padding: '16px',
+            backgroundColor: replyBg,
+            borderRadius: '8px',
+          }}
+        >
           <textarea
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: `1px solid ${inputBorder}`,
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontFamily: "'Outfit', sans-serif",
+              backgroundColor: inputBg,
+              color: textColor,
+              resize: 'vertical',
+            }}
+            onFocus={(e) => {
+              e.target.style.outline = `2px solid ${TRAXCIS_COLORS.primary.DEFAULT}`;
+              e.target.style.outlineOffset = '2px';
+            }}
+            onBlur={(e) => {
+              e.target.style.outline = 'none';
+            }}
             placeholder="Write your reply..."
             required
           />
-          <div className="mt-2 flex items-center justify-between">
+          <div style={{
+            marginTop: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
             {allowAnonymous && (
-              <label className="flex items-center text-sm">
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '14px',
+                color: textColor,
+                cursor: 'pointer',
+              }}>
                 <input
                   type="checkbox"
                   checked={isAnonymousReply}
                   onChange={(e) => setIsAnonymousReply(e.target.checked)}
-                  className="h-3 w-3 text-primary border-gray-300 rounded mr-2"
+                  style={{
+                    height: '16px',
+                    width: '16px',
+                    marginRight: '8px',
+                    cursor: 'pointer',
+                  }}
                 />
                 Reply anonymously
               </label>
             )}
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
               <button
                 type="button"
                 onClick={() => {
@@ -197,15 +356,43 @@ const FeedbackThread: React.FC<FeedbackThreadProps> = ({
                   setReplyContent('');
                   setIsAnonymousReply(false);
                 }}
-                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '14px',
+                  color: subTextColor,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: "'Outfit', sans-serif",
+                  fontWeight: '500',
+                  transition: 'color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = textColor}
+                onMouseLeave={(e) => e.currentTarget.style.color = subTextColor}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '14px',
+                  backgroundColor: TRAXCIS_COLORS.primary.DEFAULT,
+                  color: '#FFFFFF',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontFamily: "'Outfit', sans-serif",
+                  fontWeight: '500',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary[700]}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = TRAXCIS_COLORS.primary.DEFAULT}
               >
-                <Reply className="w-3 h-3" />
+                <Reply style={{ width: '14px', height: '14px' }} />
                 Reply
               </button>
             </div>
@@ -215,44 +402,82 @@ const FeedbackThread: React.FC<FeedbackThreadProps> = ({
 
       {/* Replies Thread */}
       {showReplies && (
-        <div className="mt-3 pl-6 border-l-2 border-gray-200 space-y-3">
+        <div style={{
+          marginTop: '16px',
+          paddingLeft: '24px',
+          borderLeft: `2px solid ${cardBorder}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+        }}>
           {loadingReplies ? (
-            <div className="text-sm text-gray-500">Loading replies...</div>
+            <div style={{ fontSize: '14px', color: subTextColor }}>Loading replies...</div>
           ) : replies.length === 0 ? (
-            <div className="text-sm text-gray-500">No replies yet</div>
+            <div style={{ fontSize: '14px', color: subTextColor }}>No replies yet</div>
           ) : (
             replies.map((reply) => (
-              <div key={reply.id} className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
+              <motion.div 
+                key={reply.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                style={{
+                  backgroundColor: replyBg,
+                  borderRadius: '8px',
+                  padding: '12px',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {reply.author_display === 'Anonymous' ? (
-                      <div className="flex items-center text-gray-500">
-                        <EyeOff className="w-3 h-3 mr-1" />
-                        <span className="text-xs font-medium">Anonymous</span>
+                      <div style={{ display: 'flex', alignItems: 'center', color: subTextColor }}>
+                        <EyeOff style={{ width: '14px', height: '14px', marginRight: '4px' }} />
+                        <span style={{ fontSize: '12px', fontWeight: '500' }}>Anonymous</span>
                       </div>
                     ) : (
-                      <div className="flex items-center text-gray-700">
-                        <User className="w-3 h-3 mr-1" />
-                        <span className="text-xs font-medium">{reply.author_display}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', color: textColor }}>
+                        <User style={{ width: '14px', height: '14px', marginRight: '4px' }} />
+                        <span style={{ fontSize: '12px', fontWeight: '500' }}>{reply.author_display}</span>
                       </div>
                     )}
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span style={{ fontSize: '12px', color: subTextColor }}>
                     {new Date(reply.created_at).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{reply.content}</p>
+                <p style={{
+                  fontSize: '14px',
+                  color: textColor,
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: '1.5',
+                }}>
+                  {reply.content}
+                </p>
                 {reply.sentiment_label && (
-                  <span className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs ${getSentimentColor(reply.sentiment_label)}`}>
+                  <span 
+                    className={getSentimentColor(reply.sentiment_label)}
+                    style={{
+                      display: 'inline-block',
+                      marginTop: '8px',
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      fontSize: '11px',
+                      fontWeight: '500',
+                    }}
+                  >
                     {reply.sentiment_label}
                   </span>
                 )}
-              </div>
+              </motion.div>
             ))
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

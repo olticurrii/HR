@@ -91,15 +91,18 @@ const Header: React.FC = () => {
     <>
       <header className="bg-white/80 dark:bg-neutral-dark/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-40">
         <div className="flex items-center justify-between">
-          {/* Left section - Title */}
+          {/* Left section - Logo */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
+            className="flex items-center gap-3"
           >
-            <h1 className="text-xl font-medium text-gray-900 dark:text-white">
-              HR Management System
-            </h1>
+            <img 
+              src="/Screenshot 2025-10-29 at 14.17.07.png" 
+              alt="Traxcis" 
+              className="h-10 w-auto object-contain"
+            />
           </motion.div>
 
           {/* Center section - Search Bar */}

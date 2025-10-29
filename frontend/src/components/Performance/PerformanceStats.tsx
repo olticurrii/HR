@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Target, CheckCircle, TrendingUp, ClipboardList } from 'lucide-react';
+import KPICard from '../shared/KPICard';
 
 interface PerformanceStatsProps {
   stats: {
@@ -13,28 +13,41 @@ interface PerformanceStatsProps {
 }
 
 const PerformanceStats: React.FC<PerformanceStatsProps> = ({ stats, loading = false }) => {
-  const statsConfig = [
-    { name: 'Total Goals', value: stats.totalGoals.toString(), icon: Target, color: 'bg-primary-500', bgColor: 'bg-primary-50' },
-    { name: 'Completed', value: stats.completedGoals.toString(), icon: CheckCircle, color: 'bg-green-500', bgColor: 'bg-green-50' },
-    { name: 'Avg Progress', value: `${Math.round(stats.averageProgress)}%`, icon: TrendingUp, color: 'bg-purple-500', bgColor: 'bg-purple-50' },
-    { name: 'Pending', value: stats.pendingApprovals.toString(), icon: ClipboardList, color: 'bg-orange-500', bgColor: 'bg-orange-50' },
-  ];
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {statsConfig.map((stat) => (
-        <motion.div key={stat.name} className={`${stat.bgColor} rounded-2xl p-6`}>
-          <div className="flex items-center space-x-3">
-            <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}>
-              <stat.icon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-              <p className="text-2xl font-medium text-gray-900">{stat.value}</p>
-            </div>
-          </div>
-        </motion.div>
-      ))}
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+      gap: '24px',
+    }}>
+      <KPICard
+        name="Total Goals"
+        value={stats.totalGoals}
+        icon={Target}
+        color="primary"
+        loading={loading}
+      />
+      <KPICard
+        name="Completed"
+        value={stats.completedGoals}
+        icon={CheckCircle}
+        color="green"
+        loading={loading}
+      />
+      <KPICard
+        name="Avg Progress"
+        value={`${Math.round(stats.averageProgress)}%`}
+        icon={TrendingUp}
+        color="yellow"
+        loading={loading}
+        progress={stats.averageProgress}
+      />
+      <KPICard
+        name="Pending Approvals"
+        value={stats.pendingApprovals}
+        icon={ClipboardList}
+        color="orange"
+        loading={loading}
+      />
     </div>
   );
 };

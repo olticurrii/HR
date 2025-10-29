@@ -27,6 +27,7 @@ from app.schemas.feedback import (
 )
 from app.services.insights_service import analyze_feedback, update_keyword_tracking
 from app.services.notification_service import notification_service
+from app.services.notification_service_enhanced import send_weekly_digest_email
 from app.utils.moderation import check_content_moderation, sanitize_content
 from app.api.settings import get_organization_settings
 
@@ -54,6 +55,11 @@ def serialize_feedback(feedback: Feedback, viewer: User, db: Session) -> dict:
     # Count replies
     reply_count = db.query(Feedback).filter(Feedback.parent_id == feedback.id).count()
     
+    # Normalize sentiment label to lowercase for API consistency
+    sentiment_label = None
+    if feedback.sentiment_label:
+        sentiment_label = feedback.sentiment_label.lower()
+    
     feedback_dict = {
         "id": feedback.id,
         "content": feedback.content,
@@ -64,7 +70,7 @@ def serialize_feedback(feedback: Feedback, viewer: User, db: Session) -> dict:
         "is_flagged": feedback.is_flagged,
         "flagged_reason": feedback.flagged_reason if viewer.is_admin or viewer.role == "admin" else None,
         "created_at": feedback.created_at,
-        "sentiment_label": feedback.sentiment_label if feedback.sentiment_label else None,
+        "sentiment_label": sentiment_label,
         "sentiment_score": feedback.sentiment_score,
         "keywords": feedback.keywords or [],
         "reply_count": reply_count
@@ -426,7 +432,10 @@ def get_feedback_insights(
     
     for fb in feedbacks:
         if fb.sentiment_label:
-            sentiment_counts[fb.sentiment_label] += 1
+            # Normalize to lowercase for consistency
+            label = fb.sentiment_label.lower()
+            if label in sentiment_counts:
+                sentiment_counts[label] += 1
     
     sentiment_dist = FeedbackSentimentDistribution(
         positive=sentiment_counts['positive'],

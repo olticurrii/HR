@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.database import engine, SessionLocal
 from app.core.config import settings as config_settings
 from app.models import Base
-from app.api import auth, users, departments, tasks, projects, project_tasks, chat, comments, orgchart, employee_profile, time_tracking, admin, permissions, roles, leave, feedback, settings, profile, search, performance, notifications, insights, kpi_automation
+from app.api import auth, users, departments, tasks, projects, project_tasks, chat, comments, orgchart, employee_profile, time_tracking, admin, permissions, roles, leave, feedback, settings, profile, search, performance, notifications, insights, kpi_automation, office_booking
 import os
 import logging
 
@@ -53,6 +53,56 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Get allowed origins from environment or use defaults
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+
+# Log the origins for debugging
+logger.info(f"CORS allowed origins: {allowed_origins}")
+
+# If no valid origins found, use localhost as fallback
+if not allowed_origins:
+    allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
+    logger.warning("No ALLOWED_ORIGINS found, using localhost fallback")
+
+# CORS middleware - Must be added before routes and other middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
+)
+
+# Add exception handler to ensure CORS headers are included in error responses
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
+
 # Initialize KPI background scheduler on startup
 @app.on_event("startup")
 async def startup_event():
@@ -73,30 +123,6 @@ async def shutdown_event():
         logger.info("✅ Background services stopped successfully")
     except Exception as e:
         logger.error(f"❌ Error stopping background services: {e}")
-
-# Get allowed origins from environment or use defaults
-import os
-
-# Parse ALLOWED_ORIGINS with better handling
-allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001")
-allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
-
-# Log the origins for debugging
-logger.info(f"CORS allowed origins: {allowed_origins}")
-
-# If no valid origins found, use localhost as fallback
-if not allowed_origins:
-    allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
-    logger.warning("No ALLOWED_ORIGINS found, using localhost fallback")
-
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
@@ -122,6 +148,7 @@ app.include_router(performance.router, prefix="/api/v1", tags=["Performance"])
 app.include_router(kpi_automation.router, tags=["KPI Automation"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(insights.router, prefix="/api/v1", tags=["Insights"])
+app.include_router(office_booking.router, prefix="/api/v1/office-booking", tags=["Office Booking"])
 
 # Mount static files for avatar uploads
 UPLOAD_DIR = "uploads"
