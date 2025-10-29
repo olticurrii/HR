@@ -281,8 +281,11 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose }) =>
                               <img
                                 src={avatarUrl}
                                 alt={result.title}
-                                className="w-12 h-12 rounded-full object-cover ring-2"
-                                style={{ ringColor: isSelected ? TRAXCIS_COLORS.primary.DEFAULT : 'transparent' }}
+                                className="w-12 h-12 rounded-full object-cover"
+                                style={{ 
+                                  border: `2px solid ${isSelected ? TRAXCIS_COLORS.primary.DEFAULT : 'transparent'}`,
+                                  transition: 'border-color 0.2s ease'
+                                }}
                               />
                             ) : (
                               <div
