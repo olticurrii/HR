@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, Loader2, User, CheckSquare, FolderOpen, Building2, MessageCircle, FileText, ArrowRight } from 'lucide-react';
 import searchService, { SearchResult } from '../../services/searchService';
 import API_BASE_URL from '../../config';
+import TRAXCIS_COLORS from '../../theme/traxcis';
 
 interface UniversalSearchProps {
   isOpen: boolean;
@@ -14,8 +16,25 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose }) =>
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isDark, setIsDark] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  // Dark mode detection
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+    
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -71,159 +90,326 @@ const UniversalSearch: React.FC<UniversalSearchProps> = ({ isOpen, onClose }) =>
     }
   };
 
-  const getTypeColor = (type: string) => {
-    const color = searchService.getColorForType(type);
-    const colorMap: Record<string, string> = {
-      blue: 'bg-blue-100 text-blue-700',
-      green: 'bg-green-100 text-green-700',
-      purple: 'bg-purple-100 text-purple-700',
-      yellow: 'bg-yellow-100 text-yellow-700',
-      gray: 'bg-gray-100 text-gray-700',
-      indigo: 'bg-indigo-100 text-indigo-700',
-      red: 'bg-red-100 text-red-700',
+  const getTypeIcon = (type: string) => {
+    const iconMap: Record<string, any> = {
+      user: User,
+      task: CheckSquare,
+      project: FolderOpen,
+      feedback: MessageCircle,
+      department: Building2,
+      chat: MessageCircle,
+      document: FileText,
     };
-    return colorMap[color] || 'bg-gray-100 text-gray-700';
+    return iconMap[type] || FileText;
   };
+
+  const getTypeColor = (type: string) => {
+    const colorMap: Record<string, { bg: string; text: string; icon: string }> = {
+      user: {
+        bg: isDark ? 'rgba(37, 99, 235, 0.15)' : '#EFF6FF',
+        text: isDark ? '#93C5FD' : '#1E40AF',
+        icon: TRAXCIS_COLORS.primary.DEFAULT,
+      },
+      task: {
+        bg: isDark ? 'rgba(16, 185, 129, 0.15)' : '#D1FAE5',
+        text: isDark ? '#6EE7B7' : '#065F46',
+        icon: TRAXCIS_COLORS.status.success,
+      },
+      project: {
+        bg: isDark ? 'rgba(168, 85, 247, 0.15)' : '#F3E8FF',
+        text: isDark ? '#C084FC' : '#6B21A8',
+        icon: '#A855F7',
+      },
+      feedback: {
+        bg: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7',
+        text: isDark ? '#FCD34D' : '#92400E',
+        icon: TRAXCIS_COLORS.status.warning,
+      },
+      department: {
+        bg: isDark ? 'rgba(107, 114, 128, 0.15)' : '#F3F4F6',
+        text: isDark ? '#D1D5DB' : '#4B5563',
+        icon: TRAXCIS_COLORS.secondary[500],
+      },
+      chat: {
+        bg: isDark ? 'rgba(99, 102, 241, 0.15)' : '#E0E7FF',
+        text: isDark ? '#A5B4FC' : '#3730A3',
+        icon: '#6366F1',
+      },
+    };
+    return colorMap[type] || colorMap.user;
+  };
+
+  const getLabelForType = (type: string): string => {
+    const labelMap: Record<string, string> = {
+      user: 'Person',
+      task: 'Task',
+      project: 'Project',
+      feedback: 'Feedback',
+      department: 'Department',
+      chat: 'Chat',
+      document: 'Document',
+    };
+    return labelMap[type] || type;
+  };
+
+  // Theme colors
+  const cardBg = isDark ? TRAXCIS_COLORS.secondary[900] : '#FFFFFF';
+  const cardBorder = isDark ? TRAXCIS_COLORS.secondary[700] : TRAXCIS_COLORS.secondary[200];
+  const textColor = isDark ? TRAXCIS_COLORS.secondary[100] : TRAXCIS_COLORS.secondary.DEFAULT;
+  const subTextColor = isDark ? TRAXCIS_COLORS.secondary[400] : TRAXCIS_COLORS.secondary[500];
+  const inputBg = isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50];
+  const hoverBg = isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50];
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 transition-opacity"
+          style={{ backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)' }}
+          onClick={onClose}
+        />
 
-      {/* Search Modal */}
-      <div className="flex min-h-screen items-start justify-center p-4 pt-20">
-        <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl">
-          {/* Search Input */}
-          <div className="flex items-center px-4 py-4 border-b border-gray-200">
-            <Search className="w-5 h-5 text-gray-400 mr-3" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Search for people, tasks, projects, and more..."
-              className="flex-1 text-lg outline-none placeholder-gray-400"
-            />
-            {loading && <Loader2 className="w-5 h-5 text-gray-400 animate-spin mr-3" />}
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+        {/* Search Modal */}
+        <div className="flex min-h-screen items-start justify-center p-4 pt-20">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden"
+            style={{
+              backgroundColor: cardBg,
+              border: `1px solid ${cardBorder}`,
+            }}
+          >
+            {/* Search Input */}
+            <div 
+              className="flex items-center px-6 py-4 border-b"
+              style={{ 
+                borderColor: cardBorder,
+                backgroundColor: inputBg,
+              }}
             >
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-
-          {/* Results */}
-          <div className="max-h-96 overflow-y-auto">
-            {query.length > 0 && query.length < 2 && (
-              <div className="p-8 text-center text-gray-500">
-                Type at least 2 characters to search
-              </div>
-            )}
-
-            {query.length >= 2 && !loading && results.length === 0 && (
-              <div className="p-8 text-center text-gray-500">
-                No results found for "{query}"
-              </div>
-            )}
-
-            {results.length > 0 && (
-              <div className="py-2">
-                {results.map((result, index) => {
-                  const avatarUrl = result.avatar_url
-                    ? result.avatar_url.startsWith('http')
-                      ? result.avatar_url
-                      : `${API_BASE_URL}${result.avatar_url}`
-                    : null;
-
-                  return (
-                    <div
-                      key={`${result.type}-${result.id}`}
-                      onClick={() => handleSelect(result)}
-                      className={`px-4 py-3 cursor-pointer transition-colors ${
-                        index === selectedIndex
-                          ? 'bg-primary-50 border-l-4 border-primary'
-                          : 'hover:bg-gray-50 border-l-4 border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* Avatar or Icon */}
-                        <div className="flex-shrink-0">
-                          {avatarUrl && result.type === 'user' ? (
-                            <img
-                              src={avatarUrl}
-                              alt={result.title}
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg">
-                              {searchService.getIconForType(result.type)}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-gray-900 truncate">
-                              {result.title}
-                            </h3>
-                            <span
-                              className={`px-2 py-0.5 text-xs font-medium rounded ${getTypeColor(
-                                result.type
-                              )}`}
-                            >
-                              {searchService.getLabelForType(result.type)}
-                            </span>
-                          </div>
-                          {result.subtitle && (
-                            <p className="text-sm text-gray-600 truncate">
-                              {result.subtitle}
-                            </p>
-                          )}
-                          {result.description && (
-                            <p className="text-xs text-gray-500 truncate mt-0.5">
-                              {result.description}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Keyboard hint */}
-                        {index === selectedIndex && (
-                          <div className="flex-shrink-0 text-xs text-gray-400">
-                            Enter ↵
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center justify-between rounded-b-xl">
-            <div className="flex items-center gap-4">
-              <span>↑↓ Navigate</span>
-              <span>↵ Select</span>
-              <span>ESC Close</span>
+              <Search className="w-5 h-5 mr-3" style={{ color: TRAXCIS_COLORS.primary.DEFAULT }} />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Search for people, tasks, projects, and more..."
+                style={{ 
+                  backgroundColor: 'transparent',
+                  color: textColor,
+                }}
+                className="flex-1 text-base outline-none placeholder-gray-400 dark:placeholder-gray-500 font-medium"
+              />
+              {loading && (
+                <Loader2 className="w-5 h-5 animate-spin mr-3" style={{ color: TRAXCIS_COLORS.primary.DEFAULT }} />
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                style={{ color: subTextColor }}
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            {results.length > 0 && (
-              <span>{results.length} results</span>
-            )}
-          </div>
+
+            {/* Results */}
+            <div className="max-h-[500px] overflow-y-auto">
+              {query.length > 0 && query.length < 2 && (
+                <div className="p-12 text-center">
+                  <Search className="w-12 h-12 mx-auto mb-4" style={{ color: subTextColor }} />
+                  <p style={{ color: subTextColor }} className="text-sm">
+                    Type at least 2 characters to search
+                  </p>
+                </div>
+              )}
+
+              {query.length >= 2 && !loading && results.length === 0 && (
+                <div className="p-12 text-center">
+                  <Search className="w-12 h-12 mx-auto mb-4" style={{ color: subTextColor }} />
+                  <p style={{ color: textColor }} className="font-medium mb-1">
+                    No results found
+                  </p>
+                  <p style={{ color: subTextColor }} className="text-sm">
+                    Try different keywords
+                  </p>
+                </div>
+              )}
+
+              {results.length > 0 && (
+                <div className="py-2">
+                  {results.map((result, index) => {
+                    const avatarUrl = result.avatar_url
+                      ? result.avatar_url.startsWith('http')
+                        ? result.avatar_url
+                        : `${API_BASE_URL}${result.avatar_url}`
+                      : null;
+
+                    const typeColor = getTypeColor(result.type);
+                    const TypeIcon = getTypeIcon(result.type);
+                    const isSelected = index === selectedIndex;
+
+                    return (
+                      <motion.div
+                        key={`${result.type}-${result.id}`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => handleSelect(result)}
+                        className="mx-2 mb-2 rounded-xl cursor-pointer transition-all group"
+                        style={{
+                          backgroundColor: isSelected 
+                            ? (isDark ? TRAXCIS_COLORS.primary[900] + '40' : TRAXCIS_COLORS.primary[50])
+                            : 'transparent',
+                          borderLeft: isSelected ? `4px solid ${TRAXCIS_COLORS.primary.DEFAULT}` : '4px solid transparent',
+                        }}
+                        onMouseEnter={() => setSelectedIndex(index)}
+                      >
+                        <div className="px-4 py-3 flex items-center gap-4">
+                          {/* Avatar or Icon */}
+                          <div className="flex-shrink-0">
+                            {avatarUrl && result.type === 'user' ? (
+                              <img
+                                src={avatarUrl}
+                                alt={result.title}
+                                className="w-12 h-12 rounded-full object-cover ring-2"
+                                style={{ ringColor: isSelected ? TRAXCIS_COLORS.primary.DEFAULT : 'transparent' }}
+                              />
+                            ) : (
+                              <div
+                                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
+                                style={{ backgroundColor: typeColor.bg }}
+                              >
+                                <TypeIcon className="w-6 h-6" style={{ color: typeColor.icon }} />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 
+                                style={{ color: textColor }}
+                                className="font-semibold text-sm truncate"
+                              >
+                                {result.title}
+                              </h3>
+                              <span
+                                style={{
+                                  backgroundColor: typeColor.bg,
+                                  color: typeColor.text,
+                                }}
+                                className="px-2.5 py-0.5 text-xs font-semibold rounded-full flex-shrink-0"
+                              >
+                                {getLabelForType(result.type)}
+                              </span>
+                            </div>
+                            {result.subtitle && (
+                              <p style={{ color: subTextColor }} className="text-sm truncate">
+                                {result.subtitle}
+                              </p>
+                            )}
+                            {result.description && (
+                              <p style={{ color: subTextColor }} className="text-xs truncate mt-0.5 opacity-75">
+                                {result.description}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Action hint */}
+                          <div className="flex-shrink-0">
+                            {isSelected ? (
+                              <div 
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                                style={{ backgroundColor: TRAXCIS_COLORS.primary.DEFAULT }}
+                              >
+                                <span className="text-white text-xs font-medium">Enter</span>
+                                <ArrowRight className="w-3 h-3 text-white" />
+                              </div>
+                            ) : (
+                              <ArrowRight 
+                                className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" 
+                                style={{ color: subTextColor }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div 
+              className="px-6 py-3 border-t flex items-center justify-between"
+              style={{
+                backgroundColor: isDark ? TRAXCIS_COLORS.secondary[800] : TRAXCIS_COLORS.secondary[50],
+                borderColor: cardBorder,
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <kbd 
+                    style={{ 
+                      backgroundColor: cardBg,
+                      borderColor: cardBorder,
+                      color: subTextColor,
+                    }}
+                    className="px-2 py-1 text-xs font-medium border rounded shadow-sm"
+                  >
+                    ↑↓
+                  </kbd>
+                  <span style={{ color: subTextColor }} className="text-xs">Navigate</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <kbd 
+                    style={{ 
+                      backgroundColor: cardBg,
+                      borderColor: cardBorder,
+                      color: subTextColor,
+                    }}
+                    className="px-2 py-1 text-xs font-medium border rounded shadow-sm"
+                  >
+                    ↵
+                  </kbd>
+                  <span style={{ color: subTextColor }} className="text-xs">Select</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <kbd 
+                    style={{ 
+                      backgroundColor: cardBg,
+                      borderColor: cardBorder,
+                      color: subTextColor,
+                    }}
+                    className="px-2 py-1 text-xs font-medium border rounded shadow-sm"
+                  >
+                    ESC
+                  </kbd>
+                  <span style={{ color: subTextColor }} className="text-xs">Close</span>
+                </div>
+              </div>
+              {results.length > 0 && (
+                <span style={{ color: subTextColor }} className="text-xs font-medium">
+                  {results.length} result{results.length !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 };
 
 export default UniversalSearch;
-
