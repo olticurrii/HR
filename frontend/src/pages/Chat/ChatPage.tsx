@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import ChatSidebar from '../../components/chat/ChatSidebar';
-import ChatRoom from '../../components/chat/ChatRoom';
+import ChatSidebar from '../../components/Chat/ChatSidebar';
+import ChatRoom from '../../components/Chat/ChatRoom';
 import { authService } from '../../services/authService';
 import toast from 'react-hot-toast';
 

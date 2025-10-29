@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { MessageSquare, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
-import ChatLayout from '../../components/chat/ChatLayout';
+import ChatLayout from '../../components/Chat/ChatLayout';
 import toast from 'react-hot-toast';
 
 const ChatConversationPage: React.FC = () => {
